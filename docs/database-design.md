@@ -31,7 +31,7 @@ Database phục vụ cho một nền tảng giao đồ ăn với các chức nă
 
 ### 2.1 Sơ đồ tổng quan
 
-![ERD](https://res.cloudinary.com/dqe19i7og/image/upload/v1771153991/food_delivery_db_-_public_htvl7m.png)
+<img src="https://res.cloudinary.com/dqe19i7og/image/upload/v1771153991/food_delivery_db_-_public_htvl7m.png" alt="ERD" width="800">
 
 ### 2.2 Mô tả quan hệ chính
 - **Users** là trung tâm, có thể là customer, restaurant owner, hoặc shipper
