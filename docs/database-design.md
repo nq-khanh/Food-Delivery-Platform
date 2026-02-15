@@ -32,7 +32,7 @@ Database phục vụ cho một nền tảng giao đồ ăn với các chức nă
 ### 2.1 Sơ đồ tổng quan
 
 ```
-![ERD](https://drive.google.com/file/d/1RxoCpXmItIYzA13uiEZUmYncbrcBFMn0/view?usp=drive_link)
+![ERD](https://drive.google.com/uc?export=view&id=1RxoCpXmItIYzA13uiEZUmYncbrcBFMn0)
 ```
 
 ### 2.2 Mô tả quan hệ chính
@@ -608,84 +608,5 @@ Tất cả foreign keys đều enforce referential integrity:
 - Không thể tạo order cho user không tồn tại
 - Không thể xóa restaurant nếu còn order đang pending
 - Không thể xóa product nếu đã có trong order_items (phụ thuộc vào cascade rule)
-
----
-
-## 6. Chiến lược đánh chỉ mục (Indexing Strategy)
-
-### 6.1 Primary Keys
-Tất cả bảng đều có primary key:
-- UUID cho các entity chính (users, orders, products, restaurants,...)
-- SERIAL cho các bảng phụ, trung gian (order_items, categories,...)
-
-### 6.2 Index cho tìm kiếm thường xuyên
-
-#### Location-based indexes
-```sql
--- Tìm nhà hàng gần vị trí user
-CREATE INDEX idx_restaurants_location 
-ON restaurants (latitude, longitude);
-```
-**Use case**: Tìm nhà hàng trong bán kính 5km
-
-#### Order lookup indexes
-```sql
--- Xem lịch sử đơn hàng của customer
-CREATE INDEX idx_orders_customer_id 
-ON orders (customer_id);
-```
-**Use case**: User xem "Đơn hàng của tôi"
-
-#### Product filtering
-```sql
--- Lọc món ăn theo nhà hàng và category
-CREATE INDEX idx_products_restaurant_category 
-ON products (restaurant_id, category_id);
-```
-**Use case**: Hiển thị menu nhà hàng theo danh mục
-
-### 6.3 Vector Index cho AI Search (pgvector)
-
-#### HNSW Index
-```sql
-CREATE INDEX idx_restaurant_embedding 
-ON restaurant_embeddings 
-USING hnsw (embedding vector_cosine_ops);
-```
-
-**Giải thích**:
-- **HNSW** (Hierarchical Navigable Small World): Thuật toán graph-based cho nearest neighbor search
-- **vector_cosine_ops**: Sử dụng cosine similarity để so sánh vector
-- **Performance**: Tìm kiếm gần như O(log n) thay vì O(n) brute force
-
-**Use case**:
-```sql
--- Tìm 5 nhà hàng tương tự nhất với query embedding
-SELECT restaurant_id 
-FROM restaurant_embeddings 
-ORDER BY embedding <=> [query_vector] 
-LIMIT 5;
-```
-
-### 6.4 Composite Index cần xem xét thêm
-
-```sql
--- Tìm orders theo trạng thái và thời gian
-CREATE INDEX idx_orders_status_date 
-ON orders (order_status, placed_at DESC);
-
--- Tìm products còn hàng
-CREATE INDEX idx_products_available 
-ON products (is_available, restaurant_id);
-
--- Shipper đang online và không bận
-CREATE INDEX idx_shippers_available 
-ON shippers (is_online, is_busy);
-```
-
-### 6.5 Indexes không nên tạo
-- Không index các column có cardinality thấp (boolean, enum ít giá trị)
-- Không index các bảng nhỏ (< 1000 rows)
-- Không index column hiếm khi query
 
 ---
