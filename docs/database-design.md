@@ -32,7 +32,7 @@ Database phục vụ cho một nền tảng giao đồ ăn với các chức nă
 ### 2.1 Sơ đồ tổng quan
 
 ```
-![ERD](https://drive.google.com/uc?export=view&id=1RxoCpXmItIYzA13uiEZUmYncbrcBFMn0)
+![ERD](https://res.cloudinary.com/dqe19i7og/image/upload/v1771153991/food_delivery_db_-_public_htvl7m.png)
 ```
 
 ### 2.2 Mô tả quan hệ chính
