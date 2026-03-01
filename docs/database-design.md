@@ -31,7 +31,7 @@ Database phục vụ cho một nền tảng giao đồ ăn với các chức nă
 
 ### 2.1 Sơ đồ tổng quan
 
-![ERD](./assets/food_delivery_db.png)
+![ERD](./assets/food_delivery_db - public.png)
 
 ### 2.2 Mô tả quan hệ chính
 - **Users** là trung tâm, có thể là customer, restaurant owner, hoặc shipper
