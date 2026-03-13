@@ -402,62 +402,80 @@ Mọi chuyển đổi trạng thái đều được ghi lại trong bảng `orde
 |-----|-----------|-----------|
 | 1 | Backend | Spring Boot (Java 17+) |
 | 2 | Database | PostgreSQL |
-| 3 | Frontend — Admin & Merchant | React JS |
-| 4 | Frontend — Shipper | Mobile App (React Native / Flutter) — phát triển sau |
-| 5 | API | RESTful API |
-| 6 | Security | Spring Security (JWT Authentication & RBAC Authorization) |
-| 7 | Version Control | Git + GitHub |
-| 8 | Documentation | README, API docs (Swagger/OpenAPI), Database schema |
+| 3 | Frontend — Admin | Spring MVC + Thymeleaf (Server-side Rendering) |
+| 4 | Frontend — Customer & Merchant | React JS (SPA) |
+| 5 | Frontend — Shipper | Mobile App (React Native / Flutter) — phát triển bổ sung sau |
+| 6 | API | RESTful API |
+| 7 | Security | Spring Security (JWT Authentication & RBAC Authorization) |
+| 8 | Version Control | Git + GitHub |
+| 9 | Documentation | README, API docs (Swagger/OpenAPI), Database schema |
 
 ### 8.2 Yêu cầu công nghệ bổ sung theo tính năng
 
-| Tính năng | Công nghệ |
-|-----------|-----------|
-| AI Semantic Search | pgvector (PostgreSQL extension) + OpenAI Embeddings API |
-| Thanh toán | VNPay mock (mô phỏng luồng thanh toán) |
-| Email (xác thực, thông báo) | JavaMail (Spring Mail) |
-| Lưu trữ ảnh | Local Storage (thư mục server) |
-| Admin & Merchant Panel | React JS (SPA) |
+| Tính năng | Công nghệ | Mô tả áp dụng |
+|-----------|-----------|---------------|
+| AI Semantic Search | pgvector (PostgreSQL extension) + OpenAI Embeddings API | Tìm kiếm nhà hàng, món ăn theo ngữ nghĩa |
+| Thanh toán | VNPay (mock) | Mô phỏng luồng thanh toán online |
+| Email | JavaMail (Spring Mail) | Xác thực tài khoản, thông báo duyệt hồ sơ, kết quả payout |
+| Lưu trữ file / ảnh | MinIO (Object Storage) | Upload ảnh sản phẩm, nhà hàng, avatar người dùng |
+| Realtime tracking | Spring WebSocket (STOMP) | Theo dõi trạng thái đơn hàng real-time phía Customer & Merchant |
 
 > **Lưu ý về phạm vi kỹ thuật:**
-> - **Không sử dụng Redis** — giỏ hàng và session được quản lý đơn giản qua database hoặc client-side state.
-> - **Không sử dụng MinIO/S3** — ảnh sản phẩm, nhà hàng được lưu trên local storage của server.
-> - **Không tích hợp WebSocket real-time** — trạng thái đơn hàng được cập nhật qua polling hoặc refresh thủ công.
-> - **Trang Shipper** — không nằm trong yêu cầu bắt buộc của đề tài. Sẽ được phát triển dưới dạng mobile app (React Native hoặc Flutter) sau khi hoàn thành đầy đủ các yêu cầu chính.
+> - **Admin Panel** dùng Spring MVC + Thymeleaf (server-side rendering), phù hợp với các tác vụ quản trị nội bộ ít tương tác.
+> - **Customer & Merchant** dùng React JS (SPA) để đảm bảo trải nghiệm người dùng mượt mà, hỗ trợ real-time update qua WebSocket.
+> - **MinIO** được triển khai local (self-hosted) để lưu trữ ảnh, tương thích API với S3, dễ nâng cấp sau này.
+> - **WebSocket (STOMP)** chỉ áp dụng cho luồng theo dõi trạng thái đơn hàng. Các tính năng còn lại dùng REST API thông thường.
+> - **Trang Shipper** không nằm trong yêu cầu bắt buộc của đề tài. Sẽ được phát triển dưới dạng mobile app (React Native hoặc Flutter) sau khi hoàn thành đầy đủ các yêu cầu chính.
 
 ### 8.3 Kiến trúc tổng thể
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Client Layer                      │
-│  ┌──────────────────┐    ┌────────────────────────┐  │
-│  │  React JS (SPA)  │    │  Mobile App (Shipper)  │  │
-│  │ Customer/Merchant│    │  React Native/Flutter  │  │
-│  └────────┬─────────┘    └──────────┬─────────────┘  │
-└───────────┼──────────────────────────┼───────────────┘
-            │ RESTful API (JSON)        │
-┌───────────▼──────────────────────────▼───────────────┐
-│                  Backend Layer                        │
-│           Spring Boot (Java 17+)                     │
-│   ┌──────────────┐  ┌─────────────┐  ┌────────────┐  │
-│   │  Controllers │  │  Services   │  │Repositories│  │
-│   │  (REST API)  │  │(Business    │  │  (JPA/     │  │
-│   │              │  │  Logic)     │  │Hibernate)  │  │
-│   └──────────────┘  └─────────────┘  └─────┬──────┘  │
-│   ┌──────────────┐  ┌─────────────┐        │         │
-│   │Spring Security│  │  JavaMail   │        │         │
-│   │  (JWT/RBAC)  │  │  (Email)    │        │         │
-│   └──────────────┘  └─────────────┘        │         │
-└────────────────────────────────────────────┼─────────┘
-                                             │
-┌────────────────────────────────────────────▼─────────┐
-│                  Database Layer                       │
-│              PostgreSQL 12+                          │
-│   ┌─────────────────────┐  ┌──────────────────────┐  │
-│   │  Relational Tables  │  │  pgvector Extension  │  │
-│   │  (3NF Schema)       │  │  (AI Semantic Search)│  │
-│   └─────────────────────┘  └──────────────────────┘  │
-└──────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                         Client Layer                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │  Thymeleaf MVC  │  │  React JS (SPA) │  │   Mobile App    │  │
+│  │  Admin Panel    │  │Customer/Merchant│  │  Shipper App    │  │
+│  │(server-rendered)│  │  (REST + WS)    │  │ (sau khi xong) │  │
+│  └────────┬────────┘  └───────┬─────────┘  └──────┬──────────┘  │
+└───────────┼───────────────────┼────────────────────┼────────────┘
+            │  HTTP/MVC         │  REST API           │  REST API
+            │                  │  WebSocket (STOMP)  │
+┌───────────▼───────────────────▼────────────────────▼────────────┐
+│                        Backend Layer                             │
+│                   Spring Boot (Java 17+)                        │
+│                                                                  │
+│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐ │
+│  │ MVC Controllers│  │REST Controllers│  │  WebSocket Handler   │ │
+│  │ (Thymeleaf)  │  │  (JSON API)  │  │  (STOMP — order track) │ │
+│  └──────────────┘  └──────┬───────┘  └────────────────────────┘ │
+│                           │                                      │
+│  ┌──────────────┐  ┌──────▼───────┐  ┌───────────┐             │
+│  │Spring Security│  │   Services   │  │ JavaMail  │             │
+│  │  JWT + RBAC  │  │(Business     │  │  (Email)  │             │
+│  └──────────────┘  │  Logic)      │  └───────────┘             │
+│                    └──────┬───────┘                             │
+│                    ┌──────▼───────┐                             │
+│                    │ Repositories │                             │
+│                    │ (Spring Data │                             │
+│                    │    JPA)      │                             │
+│                    └──────┬───────┘                             │
+└───────────────────────────┼─────────────────────────────────────┘
+                            │
+          ┌─────────────────┴──────────────────┐
+          │                                    │
+┌─────────▼──────────────────┐  ┌─────────────▼──────────────────┐
+│      Database Layer         │  │       Storage Layer            │
+│      PostgreSQL 12+         │  │       MinIO (Local)            │
+│                             │  │                                │
+│  ┌──────────────────────┐   │  │  ┌──────────────────────────┐ │
+│  │  Relational Tables   │   │  │  │  Buckets:                │ │
+│  │  (3NF Schema)        │   │  │  │  - products/             │ │
+│  └──────────────────────┘   │  │  │  - restaurants/          │ │
+│  ┌──────────────────────┐   │  │  │  - avatars/              │ │
+│  │  pgvector Extension  │   │  │  └──────────────────────────┘ │
+│  │  (AI Semantic Search)│   │  │                                │
+│  └──────────────────────┘   │  └────────────────────────────────┘
+└─────────────────────────────┘
 ```
 
 ---
