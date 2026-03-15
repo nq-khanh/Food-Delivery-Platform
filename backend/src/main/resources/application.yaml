@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: fooddelivery
+  profiles:
+    active: dev
+  
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Ho_Chi_Minh
+
+  mail:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            
+server:
+  port: 8080
+
+app:
+  jwt:
+    expiration: 86400000 # 1 day
+  minio:
+    bucket-name: food-delivery-bucket
