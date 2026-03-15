@@ -12,6 +12,12 @@ Hệ thống cho phép người dùng tìm kiếm món ăn, đặt hàng, theo d
 
 ---
 
+## Báo cáo tiến độ
+
+Báo cáo tiến độ hàng tuần được cập nhật tại **nhánh `develop`** của repository.
+
+---
+
 ## Thành viên nhóm
 
 | MSSV       | Họ và tên          |
