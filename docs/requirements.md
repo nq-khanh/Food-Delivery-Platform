@@ -97,7 +97,7 @@ Hệ thống có 4 actor chính, kiểm soát quyền truy cập theo mô hình 
 
 ### 3.2 Merchant
 
-- **FR-M01:** Đăng ký trở thành đối tác nhà hàng từ tài khoản Customer có sẵn.
+- **FR-M01:** Đăng ký trở thành đối tác nhà hàng bằng email, xác thực qua email (JavaMail).
 - **FR-M02:** Cập nhật thông tin nhà hàng (tên, địa chỉ, mô tả, ảnh bìa).
 - **FR-M03:** Quản lý giờ hoạt động theo từng ngày trong tuần.
 - **FR-M04:** CRUD danh mục (category) trong menu.
@@ -110,7 +110,7 @@ Hệ thống có 4 actor chính, kiểm soát quyền truy cập theo mô hình 
 
 ### 3.3 Shipper
 
-- **FR-S01:** Đăng ký trở thành tài xế từ tài khoản Customer có sẵn.
+- **FR-S01:** Đăng ký trở thành tài xế bằng email, xác thực qua email (JavaMail).
 - **FR-S02:** Xem danh sách đơn hàng sẵn sàng giao gần vị trí hiện tại.
 - **FR-S03:** Tự nhận đơn hàng (hệ thống dùng pessimistic lock tránh xung đột).
 - **FR-S04:** Cập nhật trạng thái giao hàng: đã lấy hàng → đang giao → đã giao.
