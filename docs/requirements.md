@@ -42,7 +42,7 @@ Dự án hướng đến giải quyết bài toán phí hoa hồng cao (25–30%
 - Admin duyệt merchant/shipper, quản lý voucher, cấu hình phí ship, báo cáo tổng quan.
 - Ví hệ thống và yêu cầu rút tiền cho merchant/shipper; admin xử lý chuyển khoản thủ công.
 
-> **Phạm vi loại trừ:** Không triển khai push notification real-time (WebSocket), không tích hợp lưu trữ file phân tán (MinIO/S3). Ứng dụng mobile cho Shipper sẽ được phát triển bổ sung sau khi hoàn thành các yêu cầu chính của đề tài.
+> **Phạm vi loại trừ:** Ứng dụng mobile cho Shipper sẽ được phát triển bổ sung sau khi hoàn thành các yêu cầu chính của đề tài.
 
 ### 1.3 Định nghĩa & Từ viết tắt
 
