@@ -1,8 +1,14 @@
 spring:
   application:
     name: fooddelivery
+
   profiles:
     active: dev
+
+  security:
+    user:
+      name: admin
+      password: admin@12345
   
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -17,7 +23,7 @@ spring:
             enable: true
             
 server:
-  port: 8080
+  port: 8090
 
 app:
   jwt:
