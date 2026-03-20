@@ -19,7 +19,9 @@ spring:
 
 app:
   jwt:
-    secret: "yh+Nbkop9aGOAKwnmut9vfAfNyhwgFwGVSX2L1NZ1SQ="
+    secret: ${JWT_SECRET:w6WURf8RWmaS3Ned1m8YHtwDI1PWc9kO0D06ewpOv8c=}
+    access-token-expiration-ms: 900000        # 15 phút
+    refresh-token-expiration-ms: 604800000    # 7 ngày
   minio:
     endpoint: http://localhost:9000
     access-key: minioadmin
