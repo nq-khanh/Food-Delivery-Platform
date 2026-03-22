@@ -137,7 +137,7 @@ public class User {
 
         public User build() {
             User user = new User();
-            user.setUsername(username);
+            user.setUsername(username); // required: unique not null
             user.setEmail(email);
             user.setPasswordHash(passwordHash);
             user.setRole(role != null ? role : Role.USER);
