@@ -1,6 +1,6 @@
 # Báo cáo Tuần 2
 
-**Tuần:** 1 (09/03/2026 – 15/03/2026)  
+**Tuần:** 2 (09/03/2026 – 15/03/2026)  
 **Nhóm:** [08]  
 **Đề tài:** [Food Delivery Platform]  
 **Nhóm trưởng:** Nguyễn Quang Khánh - 2251010050
