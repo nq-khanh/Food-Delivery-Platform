@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/food_delivery_db
+    url: jdbc:postgresql://localhost:5432/food_delivery_db?prepareThreshold=0
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver

@@ -1,4 +1,4 @@
-package com.hkt.fooddelivery.service;
+package com.hkt.fooddelivery.service.unit;
 
 import com.hkt.fooddelivery.config.MinioProperties;
 import com.hkt.fooddelivery.exception.FileSizeExceededException;

@@ -60,18 +60,6 @@ public class User {
         updatedAt = Instant.now();
     }
 
-    public User() {
-    }
-
-    public User(String email, String passwordHash, Role role, String firstName, String lastName, String phone) {
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.role = role;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
-    }
-
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
@@ -137,7 +125,7 @@ public class User {
 
         public User build() {
             User user = new User();
-            user.setUsername(username); // required: unique not null
+            user.setUsername(username);
             user.setEmail(email);
             user.setPasswordHash(passwordHash);
             user.setRole(role != null ? role : Role.USER);

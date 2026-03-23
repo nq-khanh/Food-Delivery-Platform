@@ -20,8 +20,9 @@ public class UserToken {
     @Column(name = "token_hash", nullable = false, columnDefinition = "TEXT")
     private String tokenHash;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
-    private String type;
+    private TokenType type;
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
@@ -48,8 +49,8 @@ public class UserToken {
     public String getTokenHash() { return tokenHash; }
     public void setTokenHash(String tokenHash) { this.tokenHash = tokenHash; }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public TokenType getType() { return type; }
+    public void setType(TokenType type) { this.type = type; }
 
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
@@ -59,29 +60,22 @@ public class UserToken {
 
     public Instant getCreatedAt() { return createdAt; }
 
-    public static UserTokenBuilder builder() { return new UserTokenBuilder(); }
+    public UserToken(User user, String tokenHash, TokenType type, Instant expiresAt) {
+        this.user = user;
+        this.tokenHash = tokenHash;
+        this.type = type;
+        this.expiresAt = expiresAt;
+    }
 
-    public static final class UserTokenBuilder {
-        private User user;
-        private String tokenHash;
-        private String type;
-        private Instant expiresAt;
-        private boolean isRevoked;
+    public void revoke() {
+        this.isRevoked = true;
+    }
 
-        public UserTokenBuilder user(User user) { this.user = user; return this; }
-        public UserTokenBuilder tokenHash(String tokenHash) { this.tokenHash = tokenHash; return this; }
-        public UserTokenBuilder type(String type) { this.type = type; return this; }
-        public UserTokenBuilder expiresAt(Instant expiresAt) { this.expiresAt = expiresAt; return this; }
-        public UserTokenBuilder isRevoked(boolean isRevoked) { this.isRevoked = isRevoked; return this; }
+    public boolean isExpired() {
+        return Instant.now().isAfter(expiresAt);
+    }
 
-        public UserToken build() {
-            UserToken t = new UserToken();
-            t.setUser(user);
-            t.setTokenHash(tokenHash);
-            t.setType(type);
-            t.setExpiresAt(expiresAt);
-            t.setRevoked(isRevoked);
-            return t;
-        }
+    public boolean isActive() {
+        return !isRevoked && !isExpired();
     }
 }

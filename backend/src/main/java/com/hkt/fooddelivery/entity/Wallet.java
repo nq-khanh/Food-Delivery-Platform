@@ -2,6 +2,7 @@ package com.hkt.fooddelivery.entity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 import jakarta.persistence.*;
@@ -30,16 +31,9 @@ public class Wallet {
     @Column(name = "bank_account_holder", length = 100)
     private String bankAccountHolder;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private Instant updatedAt;
 
-    @PrePersist
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
-    }
-
-    public Wallet() {}
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -48,7 +42,6 @@ public class Wallet {
     public void setUser(User user) { this.user = user; }
 
     public BigDecimal getBalance() { return balance; }
-    public void setBalance(BigDecimal balance) { this.balance = balance; }
 
     public String getBankName() { return bankName; }
     public void setBankName(String bankName) { this.bankName = bankName; }
@@ -61,29 +54,23 @@ public class Wallet {
 
     public Instant getUpdatedAt() { return updatedAt; }
 
-    public static WalletBuilder builder() { return new WalletBuilder(); }
+    public Wallet(User user) {
+        this.user = Objects.requireNonNull(user);
+        this.balance = BigDecimal.ZERO;
+    }
 
-    public static final class WalletBuilder {
-        private User user;
-        private BigDecimal balance = BigDecimal.ZERO;
-        private String bankName;
-        private String bankAccountNumber;
-        private String bankAccountHolder;
+    public void credit(BigDecimal amount) {
+        Objects.requireNonNull(amount);
+        if (amount.signum() <= 0) throw new IllegalArgumentException();
+        this.balance = this.balance.add(amount);
+    }
 
-        public WalletBuilder user(User user) { this.user = user; return this; }
-        public WalletBuilder balance(BigDecimal balance) { this.balance = balance; return this; }
-        public WalletBuilder bankName(String bankName) { this.bankName = bankName; return this; }
-        public WalletBuilder bankAccountNumber(String bankAccountNumber) { this.bankAccountNumber = bankAccountNumber; return this; }
-        public WalletBuilder bankAccountHolder(String bankAccountHolder) { this.bankAccountHolder = bankAccountHolder; return this; }
-
-        public Wallet build() {
-            Wallet w = new Wallet();
-            w.setUser(user);
-            w.setBalance(balance != null ? balance : BigDecimal.ZERO);
-            w.setBankName(bankName);
-            w.setBankAccountNumber(bankAccountNumber);
-            w.setBankAccountHolder(bankAccountHolder);
-            return w;
+    public void debit(BigDecimal amount) {
+        Objects.requireNonNull(amount);
+        if (amount.signum() <= 0) throw new IllegalArgumentException();
+        if (this.balance.compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient balance");
         }
+        this.balance = this.balance.subtract(amount);
     }
 }
