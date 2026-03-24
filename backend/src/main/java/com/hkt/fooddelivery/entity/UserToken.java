@@ -31,11 +31,11 @@ public class UserToken {
     private boolean isRevoked = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    protected Instant createdAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
+        this.createdAt = Instant.now();
     }
 
     public UserToken() {}

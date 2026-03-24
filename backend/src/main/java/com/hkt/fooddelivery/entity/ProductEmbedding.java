@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import java.util.Objects;
 import java.util.UUID;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Array;
@@ -14,36 +15,37 @@ public class ProductEmbedding {
     @Column(name = "product_id")
     private UUID productId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Column(name = "embedding")
+    @Column(name = "embedding", nullable = false)
     @JdbcTypeCode(SqlTypes.VECTOR)
     @Array(length = 1536)
     private float[] embedding;
 
-    public ProductEmbedding() {
+    protected ProductEmbedding() {
     }
 
     public ProductEmbedding(Product product, float[] embedding) {
-        this.product = product;
-        this.productId = product.getId();
-        this.embedding = embedding;
+        this.product = Objects.requireNonNull(product);
+        setEmbedding(embedding);
     }
-
-    // ── Getters & Setters ──────────────────────────────────────
 
     public UUID getProductId() { return productId; }
-    public void setProductId(UUID productId) { this.productId = productId; }
 
     public Product getProduct() { return product; }
-    public void setProduct(Product product) {
-        this.product = product;
-        this.productId = product.getId();
-    }
 
     public float[] getEmbedding() { return embedding; }
-    public void setEmbedding(float[] embedding) { this.embedding = embedding; }
+
+    private static final int DIMENSION = 1536;
+
+    public void setEmbedding(float[] embedding) {
+        Objects.requireNonNull(embedding);
+        if (embedding.length != DIMENSION) {
+            throw new IllegalArgumentException("Invalid embedding dimension");
+        }
+        this.embedding = embedding.clone();
+    }
 }

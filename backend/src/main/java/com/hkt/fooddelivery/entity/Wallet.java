@@ -31,12 +31,15 @@ public class Wallet {
     @Column(name = "bank_account_holder", length = 100)
     private String bankAccountHolder;
 
-    @Column(name = "updated_at", insertable = false, updatable = false)
+    @Column(name = "updated_at", nullable = false, updatable = false)
     private Instant updatedAt;
 
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
 
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
@@ -53,6 +56,9 @@ public class Wallet {
     public void setBankAccountHolder(String bankAccountHolder) { this.bankAccountHolder = bankAccountHolder; }
 
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public Wallet() {
+    }
 
     public Wallet(User user) {
         this.user = Objects.requireNonNull(user);
