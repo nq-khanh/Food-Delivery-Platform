@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -47,31 +48,48 @@ public class UserAddress {
         this.updatedAt = Instant.now();
     }
 
-    public UserAddress() {}
+    protected UserAddress() {}
 
     public UserAddress(User user, String fullAddress, Point location) {
-        this.user = user;
-        this.fullAddress = fullAddress;
-        this.location = location;
+        this.user = Objects.requireNonNull(user);
+        this.fullAddress = requireNonBlank(fullAddress);
+        this.location = Objects.requireNonNull(location);
+        this.isDefault = false;
     }
 
     public UUID getId() { return id; }
-
     public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
     public String getAddressName() { return addressName; }
-    public void setAddressName(String addressName) { this.addressName = addressName; }
-
     public String getFullAddress() { return fullAddress; }
-    public void setFullAddress(String fullAddress) { this.fullAddress = fullAddress; }
-
     public Point getLocation() { return location; }
-    public void setLocation(Point location) { this.location = location; }
-
     public boolean isDefault() { return isDefault; }
-    public void setDefault(boolean aDefault) { isDefault = aDefault; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public void rename(String addressName) {
+        this.addressName = addressName != null ? addressName.trim() : null;
+    }
+
+    public void changeAddress(String fullAddress, Point location) {
+        this.fullAddress = requireNonBlank(fullAddress);
+        this.location = Objects.requireNonNull(location);
+    }
+
+    void markAsDefault() {
+        this.isDefault = true;
+    }
+
+    void unmarkDefault() {
+        this.isDefault = false;
+    }
+
+    private String requireNonBlank(String value) {
+        Objects.requireNonNull(value);
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Address cannot be blank");
+        }
+        return trimmed;
+    }
+
 }

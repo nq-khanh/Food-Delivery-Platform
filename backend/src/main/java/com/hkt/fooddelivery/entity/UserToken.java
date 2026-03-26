@@ -1,6 +1,7 @@
 package com.hkt.fooddelivery.entity;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 import jakarta.persistence.*;
@@ -38,36 +39,31 @@ public class UserToken {
         this.createdAt = Instant.now();
     }
 
-    public UserToken() {}
-
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
     public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
     public String getTokenHash() { return tokenHash; }
-    public void setTokenHash(String tokenHash) { this.tokenHash = tokenHash; }
-
     public TokenType getType() { return type; }
-    public void setType(TokenType type) { this.type = type; }
-
     public Instant getExpiresAt() { return expiresAt; }
-    public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
-
     public boolean isRevoked() { return isRevoked; }
-    public void setRevoked(boolean revoked) { isRevoked = revoked; }
-
     public Instant getCreatedAt() { return createdAt; }
 
+    protected UserToken() {}
+
     public UserToken(User user, String tokenHash, TokenType type, Instant expiresAt) {
-        this.user = user;
-        this.tokenHash = tokenHash;
-        this.type = type;
-        this.expiresAt = expiresAt;
+        this.user = Objects.requireNonNull(user);
+        this.tokenHash = requireNonBlank(tokenHash);
+        this.type = Objects.requireNonNull(type);
+        this.expiresAt = Objects.requireNonNull(expiresAt);
+
+        if (expiresAt.isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Expiration must be in the future");
+        }
+
+        this.isRevoked = false;
     }
 
     public void revoke() {
+        if (this.isRevoked) return;
         this.isRevoked = true;
     }
 
@@ -77,5 +73,14 @@ public class UserToken {
 
     public boolean isActive() {
         return !isRevoked && !isExpired();
+    }
+
+    private String requireNonBlank(String value) {
+        Objects.requireNonNull(value);
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Value cannot be blank");
+        }
+        return trimmed;
     }
 }

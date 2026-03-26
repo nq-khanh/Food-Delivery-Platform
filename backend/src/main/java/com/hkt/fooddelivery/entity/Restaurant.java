@@ -63,24 +63,14 @@ public class Restaurant {
     }
 
     public UUID getId() { return id; }
-
     public User getOwner() { return owner; }
-
     public String getName() { return name; }
-
     public String getAddress() { return address; }
-
     public String getDescription() { return description; }
-
     public String getLogoUrl() { return logoUrl; }
-    public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
-
     public ApprovalStatus getApprovalStatus() { return approvalStatus; }
-
     public BigDecimal getRatingAvg() { return ratingAvg; }
-
     public boolean isActive() { return isActive; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
@@ -88,31 +78,27 @@ public class Restaurant {
 
     public Restaurant(User owner, String name, String address, Point location) {
         this.owner = Objects.requireNonNull(owner);
-        this.name = Objects.requireNonNull(name);
-        this.address = Objects.requireNonNull(address);
+        this.name = requireNonBlank(name);
+        this.address = requireNonBlank(address);
         this.location = Objects.requireNonNull(location);
+
         this.approvalStatus = ApprovalStatus.PENDING;
-        this.ratingAvg = BigDecimal.ZERO;
-        this.isActive = true;
+        this.ratingAvg = BigDecimal.ZERO.setScale(1);
+        this.isActive = false;
     }
 
     public void updateInfo(String name, String address, String description) {
-        this.name = Objects.requireNonNull(name);
-        this.address = Objects.requireNonNull(address);
+        this.name = requireNonBlank(name);
+        this.address = requireNonBlank(address);
         this.description = description;
     }
 
-    private static final BigDecimal MAX_RATING = new BigDecimal("5");
+    public void updateLocation(Point location) {
+        this.location = Objects.requireNonNull(location);
+    }
 
-    public void updateRating(BigDecimal newRating) {
-        Objects.requireNonNull(newRating);
-
-        if (newRating.compareTo(BigDecimal.ZERO) < 0 ||
-                newRating.compareTo(MAX_RATING) > 0) {
-            throw new IllegalArgumentException("Invalid rating");
-        }
-
-        this.ratingAvg = newRating.setScale(1, RoundingMode.HALF_UP);
+    public void updateLogo(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 
     public void approve() {
@@ -120,6 +106,7 @@ public class Restaurant {
             throw new IllegalStateException("Only pending can be approved");
         }
         this.approvalStatus = ApprovalStatus.APPROVED;
+        this.isActive = true;
     }
 
     public void reject() {
@@ -127,13 +114,42 @@ public class Restaurant {
             throw new IllegalStateException("Only pending can be rejected");
         }
         this.approvalStatus = ApprovalStatus.REJECTED;
+        this.isActive = false;
     }
 
     public void deactivate() {
+        if (this.approvalStatus != ApprovalStatus.APPROVED) {
+            throw new IllegalStateException("Only approved restaurant can be deactivated");
+        }
         this.isActive = false;
     }
 
     public void activate() {
+        if (this.approvalStatus != ApprovalStatus.APPROVED) {
+            throw new IllegalStateException("Only approved restaurant can be activated");
+        }
         this.isActive = true;
+    }
+
+    void updateRatingInternal(BigDecimal newRating) {
+        this.ratingAvg = normalizeRating(newRating);
+    }
+
+    private String requireNonBlank(String value) {
+        Objects.requireNonNull(value);
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Value cannot be blank");
+        }
+        return trimmed;
+    }
+
+    private BigDecimal normalizeRating(BigDecimal rating) {
+        Objects.requireNonNull(rating);
+        if (rating.compareTo(BigDecimal.ZERO) < 0 ||
+                rating.compareTo(new BigDecimal("5")) > 0) {
+            throw new IllegalArgumentException("Invalid rating");
+        }
+        return rating.setScale(1, RoundingMode.HALF_UP);
     }
 }

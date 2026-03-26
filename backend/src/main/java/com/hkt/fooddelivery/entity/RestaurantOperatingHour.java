@@ -48,32 +48,36 @@ public class RestaurantOperatingHour {
         this.updatedAt = Instant.now();
     }
 
-    public RestaurantOperatingHour() {
-    }
-
-
     public Integer getId() { return id; }
-
     public Restaurant getRestaurant() { return restaurant; }
-    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
-
     public DayOfWeek getDayOfWeek() { return dayOfWeek; }
-
     public LocalTime getOpenTime() { return openTime; }
-
     public LocalTime getCloseTime() { return closeTime; }
-
     public boolean isClosed() { return isClosed; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-    public void open(LocalTime openTime, LocalTime closeTime) {
+    protected RestaurantOperatingHour() {}
+
+    public RestaurantOperatingHour(
+            Restaurant restaurant,
+            DayOfWeek dayOfWeek,
+            LocalTime openTime,
+            LocalTime closeTime
+    ) {
+        this.restaurant = Objects.requireNonNull(restaurant);
+        this.dayOfWeek = Objects.requireNonNull(dayOfWeek);
+
+        setOperatingHours(openTime, closeTime);
+        this.isClosed = false;
+    }
+
+    public void setOperatingHours(LocalTime openTime, LocalTime closeTime) {
         Objects.requireNonNull(openTime);
         Objects.requireNonNull(closeTime);
 
-        if (!openTime.isBefore(closeTime)) {
-            throw new IllegalArgumentException("Invalid time range");
+        if (openTime.equals(closeTime)) {
+            throw new IllegalArgumentException("Open and close time cannot be equal");
         }
 
         this.openTime = openTime;
@@ -81,14 +85,17 @@ public class RestaurantOperatingHour {
         this.isClosed = false;
     }
 
-    public void close() {
+    public void closeAllDay() {
         this.isClosed = true;
-        this.openTime = null;
-        this.closeTime = null;
     }
 
     public boolean isOpenAt(LocalTime time) {
         if (isClosed) return false;
-        return !time.isBefore(openTime) && time.isBefore(closeTime);
+
+        if (openTime.isBefore(closeTime)) {
+            return !time.isBefore(openTime) && time.isBefore(closeTime);
+        } else {
+            return !time.isBefore(openTime) || time.isBefore(closeTime);
+        }
     }
 }

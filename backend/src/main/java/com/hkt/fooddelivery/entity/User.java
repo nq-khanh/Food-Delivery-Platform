@@ -63,27 +63,16 @@ public class User {
 
 
     public UUID getId() { return id; }
-
     public String getUsername() {return  username; }
-
     public String getEmail() { return email; }
-
     public String getPasswordHash() { return passwordHash; }
-
     public Role getRole() { return role; }
-
     public String getFirstName() { return firstName; }
-
     public String getLastName() { return lastName; }
-
     public String getPhone() { return phone; }
-
     public String getAvatarUrl() { return avatarUrl; }
-
     public boolean isVerified() { return isVerified; }
-
     public boolean isActive() { return isActive; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 

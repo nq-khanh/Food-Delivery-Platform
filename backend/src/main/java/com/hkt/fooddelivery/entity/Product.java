@@ -56,21 +56,13 @@ public class Product {
     }
 
     public UUID getId() { return id; }
-
     public Restaurant getRestaurant() { return restaurant; }
-
     public Category getCategory() { return category; }
-
     public String getName() { return name; }
-
     public BigDecimal getPrice() { return price; }
-
     public String getDescription() { return description; }
-
     public String getImageUrl() { return imageUrl; }
-
     public boolean isAvailable() { return isAvailable; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
@@ -85,27 +77,28 @@ public class Product {
 
     public Product(Restaurant restaurant, Category category, String name, BigDecimal price) {
         this(restaurant, name, price);
-        changeCategory(category);
+        assignCategory(category);
     }
 
     public void rename(String name) {
         this.name = normalizeName(name);
     }
 
-    public void changePrice(BigDecimal price) {
+    public void updatePrice(BigDecimal price) {
         this.price = validatePrice(price);
     }
 
-    public void changeCategory(Category category) {
-        if (category != null && !category.getRestaurant().equals(this.restaurant)) {
+    public void assignCategory(Category category) {
+        if (category != null && !category.getRestaurant().getId().equals(this.restaurant.getId())) {
             throw new IllegalArgumentException("Category must belong to same restaurant");
         }
         this.category = category;
     }
 
-    public void updateInfo(String name, String description, String imageUrl) {
-        this.name = normalizeName(name);
+    public void changeDescription(String description){
         this.description = description;
+    }
+    public void changeImage(String imageUrl){
         this.imageUrl = imageUrl;
     }
 

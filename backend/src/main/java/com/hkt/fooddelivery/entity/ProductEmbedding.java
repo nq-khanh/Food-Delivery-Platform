@@ -34,9 +34,7 @@ public class ProductEmbedding {
     }
 
     public UUID getProductId() { return productId; }
-
     public Product getProduct() { return product; }
-
     public float[] getEmbedding() { return embedding; }
 
     private static final int DIMENSION = 1536;

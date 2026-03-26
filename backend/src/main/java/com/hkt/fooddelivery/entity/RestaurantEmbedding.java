@@ -34,9 +34,7 @@ public class RestaurantEmbedding {
     }
 
     public UUID getRestaurantId() { return restaurantId; }
-
     public Restaurant getRestaurant() { return restaurant; }
-
     public float[] getEmbedding() { return embedding; }
 
     private static final int DIMENSION = 1536;

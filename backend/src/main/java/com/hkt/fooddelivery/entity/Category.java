@@ -41,13 +41,9 @@ public class Category {
     }
 
     public Integer getId() { return id; }
-
     public Restaurant getRestaurant() { return restaurant; }
-
     public String getName() { return name; }
-
     public Integer getDisplayOrder() { return displayOrder; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
@@ -55,7 +51,7 @@ public class Category {
 
     public Category(Restaurant restaurant, String name) {
         this.restaurant = Objects.requireNonNull(restaurant);
-        this.name = Objects.requireNonNull(name);
+        this.name = normalize(name);
         this.displayOrder = 0;
     }
 
