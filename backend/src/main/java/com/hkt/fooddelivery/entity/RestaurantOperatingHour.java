@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Objects;
 
+import com.hkt.fooddelivery.entity.enums.DayOfWeek;
 import jakarta.persistence.*;
 
 @Entity

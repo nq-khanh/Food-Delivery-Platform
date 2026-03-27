@@ -1,5 +1,7 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.entity.enums.DiscountType;
+import com.hkt.fooddelivery.entity.enums.TargetType;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;

@@ -3,6 +3,8 @@ package com.hkt.fooddelivery.entity;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+
+import com.hkt.fooddelivery.entity.enums.Role;
 import jakarta.persistence.*;
 
 @Entity

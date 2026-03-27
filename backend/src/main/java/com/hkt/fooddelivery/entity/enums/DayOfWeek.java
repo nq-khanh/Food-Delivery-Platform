@@ -1,4 +1,4 @@
-package com.hkt.fooddelivery.entity;
+package com.hkt.fooddelivery.entity.enums;
 
 public enum DayOfWeek {
     MONDAY,

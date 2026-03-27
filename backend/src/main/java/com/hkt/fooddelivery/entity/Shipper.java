@@ -39,6 +39,9 @@ public class Shipper {
     @Column(name = "rating_avg", precision = 2, scale = 1)
     private BigDecimal ratingAvg = BigDecimal.ZERO;
 
+    @Column(name = "review_count")
+    private int reviewCount;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
@@ -72,6 +75,7 @@ public class Shipper {
     public boolean isBusy() { return isBusy; }
     public Point getLocation() { return location; }
     public BigDecimal getRatingAvg() { return ratingAvg; }
+    public int getReviewCount() { return reviewCount; }
     public Instant getUpdatedAt() { return updatedAt; }
 
 
@@ -107,17 +111,13 @@ public class Shipper {
         this.location = Objects.requireNonNull(location);
     }
 
-    private static final BigDecimal MAX_RATING = new BigDecimal("5");
+    public void updateRating(int newRating) {
+        BigDecimal totalScore = this.ratingAvg
+                .multiply(BigDecimal.valueOf(this.reviewCount))
+                .add(BigDecimal.valueOf(newRating));
 
-    public void updateRating(BigDecimal rating) {
-        Objects.requireNonNull(rating);
-
-        if (rating.compareTo(BigDecimal.ZERO) < 0 ||
-                rating.compareTo(MAX_RATING) > 0) {
-            throw new IllegalArgumentException("Invalid rating");
-        }
-
-        this.ratingAvg = rating.setScale(1, RoundingMode.HALF_UP);
+        this.reviewCount++;
+        this.ratingAvg = totalScore.divide(BigDecimal.valueOf(this.reviewCount), 1, RoundingMode.HALF_UP);
     }
 
     private String normalize(String value) {

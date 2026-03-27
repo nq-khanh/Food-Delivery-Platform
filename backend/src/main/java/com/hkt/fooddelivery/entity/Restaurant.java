@@ -5,6 +5,8 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+
+import com.hkt.fooddelivery.entity.enums.ApprovalStatus;
 import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 
@@ -42,6 +44,9 @@ public class Restaurant {
     @Column(name = "rating_avg", precision = 2, scale = 1)
     private BigDecimal ratingAvg = BigDecimal.ZERO;
 
+    @Column(name = "review_count")
+    private int reviewCount;
+
     @Column(name = "is_active")
     private boolean isActive = true;
 
@@ -70,6 +75,7 @@ public class Restaurant {
     public String getLogoUrl() { return logoUrl; }
     public ApprovalStatus getApprovalStatus() { return approvalStatus; }
     public BigDecimal getRatingAvg() { return ratingAvg; }
+    public int getReviewCount() { return reviewCount; }
     public boolean isActive() { return isActive; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
@@ -131,8 +137,13 @@ public class Restaurant {
         this.isActive = true;
     }
 
-    void updateRatingInternal(BigDecimal newRating) {
-        this.ratingAvg = normalizeRating(newRating);
+    public void updateRating(int newRating) {
+        BigDecimal totalScore = this.ratingAvg
+                .multiply(BigDecimal.valueOf(this.reviewCount))
+                .add(BigDecimal.valueOf(newRating));
+
+        this.reviewCount++;
+        this.ratingAvg = totalScore.divide(BigDecimal.valueOf(this.reviewCount), 1, RoundingMode.HALF_UP);
     }
 
     private String requireNonBlank(String value) {
@@ -142,14 +153,5 @@ public class Restaurant {
             throw new IllegalArgumentException("Value cannot be blank");
         }
         return trimmed;
-    }
-
-    private BigDecimal normalizeRating(BigDecimal rating) {
-        Objects.requireNonNull(rating);
-        if (rating.compareTo(BigDecimal.ZERO) < 0 ||
-                rating.compareTo(new BigDecimal("5")) > 0) {
-            throw new IllegalArgumentException("Invalid rating");
-        }
-        return rating.setScale(1, RoundingMode.HALF_UP);
     }
 }

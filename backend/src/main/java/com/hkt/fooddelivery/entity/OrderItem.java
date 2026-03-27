@@ -27,12 +27,13 @@ public class OrderItem {
 
     public Integer getId() { return id;}
     public Order getOrder() { return order;}
+    public Product getProduct() { return product;}
     public BigDecimal getPriceAtPurchase() { return priceAtPurchase;}
     public int getQuantity() { return quantity;}
 
     protected OrderItem() {}
 
-    public OrderItem(Order order, Product product, int quantity, BigDecimal price) {
+    protected OrderItem(Order order, Product product, int quantity, BigDecimal price) {
         this.order = order;
         this.product = product;
         this.quantity = quantity;
@@ -41,5 +42,12 @@ public class OrderItem {
 
     public BigDecimal getTotalPrice() {
         return priceAtPurchase.multiply(BigDecimal.valueOf(quantity));
+    }
+
+    public void addQuantity(int additionalQuantity) {
+        if (additionalQuantity <= 0) {
+            throw new IllegalArgumentException("Quantity to add must be positive");
+        }
+        this.quantity += additionalQuantity;
     }
 }

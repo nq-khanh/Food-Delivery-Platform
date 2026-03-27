@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.hkt.fooddelivery.entity.enums.TokenType;
 import jakarta.persistence.*;
 
 @Entity

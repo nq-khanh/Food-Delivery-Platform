@@ -1,14 +1,13 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.entity.enums.OrderPaymentStatus;
+import com.hkt.fooddelivery.entity.enums.OrderStatus;
 import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "orders")
@@ -82,6 +81,9 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderStatusHistory> statusHistories = new ArrayList<>();
 
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private OrderReview review;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();
@@ -95,6 +97,24 @@ public class Order {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    protected Order() {
+    }
+
+    public Order(User customer, Restaurant restaurant, String deliveryAddress, Point deliveryLocation) {
+
+        this.customer = Objects.requireNonNull(customer);
+        this.restaurant = Objects.requireNonNull(restaurant);
+        this.deliveryAddress = Objects.requireNonNull(deliveryAddress);
+        this.deliveryLocation = Objects.requireNonNull(deliveryLocation);
+
+        this.orderStatus = OrderStatus.PENDING;
+        this.orderPaymentStatus = OrderPaymentStatus.UNPAID;
+        this.subtotal = BigDecimal.ZERO;
+        this.shippingFee = BigDecimal.ZERO;
+        this.discountAmount = BigDecimal.ZERO;
+        this.totalAmount = BigDecimal.ZERO;
     }
 
     public UUID getId() { return id; }
@@ -122,39 +142,41 @@ public class Order {
         return List.copyOf(items);
     }
 
-    public void setNotes(String notes) { this.notes = notes; }
-    public void setOrderCode(String orderCode) { this.orderCode = orderCode; }
+    public void updateNotes(String notes) {
+        this.notes = notes;
+    }
+
+    private void generateOrderCode() {
+        this.orderCode = "ORD-" + System.currentTimeMillis();
+    }
+
     public void setShippingFee(BigDecimal shippingFee) {
         this.shippingFee = shippingFee;
         recalculateTotal();
     }
 
-    protected Order() {
-    }
-
-    public Order(User customer, Restaurant restaurant, String deliveryAddress, Point deliveryLocation) {
-
-        this.customer = Objects.requireNonNull(customer);
-        this.restaurant = Objects.requireNonNull(restaurant);
-        this.deliveryAddress = Objects.requireNonNull(deliveryAddress);
-        this.deliveryLocation = Objects.requireNonNull(deliveryLocation);
-
-        this.orderStatus = OrderStatus.PENDING;
-        this.orderPaymentStatus = OrderPaymentStatus.UNPAID;
-        this.subtotal = BigDecimal.ZERO;
-        this.shippingFee = BigDecimal.ZERO;
-        this.discountAmount = BigDecimal.ZERO;
-        this.totalAmount = BigDecimal.ZERO;
-    }
-
     public void addItem(Product product, int quantity) {
         ensureModifiable();
 
-        if (quantity <= 0) throw new IllegalArgumentException();
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero");
+        }
 
-        OrderItem item = new OrderItem(this, product, quantity, product.getPrice());
-        this.items.add(item);
+        // 1. Tìm xem sản phẩm đã có trong giỏ hàng chưa
+        Optional<OrderItem> existingItem = items.stream()
+                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .findFirst();
 
+        if (existingItem.isPresent()) {
+            // 2. Nếu đã có: Cộng dồn số lượng
+            existingItem.get().addQuantity(quantity);
+        } else {
+            // 3. Nếu chưa có: Tạo mới và thêm vào danh sách
+            OrderItem newItem = new OrderItem(this, product, quantity, product.getPrice());
+            this.items.add(newItem);
+        }
+
+        // 4. Luôn tính lại tổng tiền sau khi thay đổi item
         recalculateSubtotal();
     }
 
@@ -238,6 +260,39 @@ public class Order {
             throw new IllegalStateException();
         }
         this.orderPaymentStatus = OrderPaymentStatus.PAID;
+    }
+
+    public OrderReview review(int resRating, String resComment, Integer shipRating, List<ReviewItemCommand> commands) {
+        // 1. Kiểm tra trạng thái chung của Order
+        if (this.orderStatus != OrderStatus.COMPLETED) throw new IllegalStateException("Only completed order can be reviewed");
+        if (this.review != null) throw new IllegalStateException("Already reviewed");
+
+        // 2. Tạo OrderReview
+        OrderReview newReview = new OrderReview(this);
+        newReview.reviewRestaurant(resRating, resComment);
+        if (shipRating != null)
+            newReview.reviewShipper(shipRating);
+
+        // 3. Duyệt danh sách đánh giá món ăn
+        if (commands != null) {
+            for (ReviewItemCommand data : commands) {
+                // Check nghiệp vụ: Món này có thuộc đơn hàng không?
+                if (!this.containsProduct(data.product())) {
+                    throw new IllegalArgumentException("Sản phẩm không thuộc đơn hàng: " + data.product().getName());
+                }
+
+                // Ủy quyền tạo ItemReview cho OrderReview
+                newReview.addItemReview(data.product(), data.rating(), data.comment(), data.imageUrl());
+            }
+        }
+
+        this.review = newReview;
+        return newReview;
+    }
+
+    private boolean containsProduct(Product product) {
+        return this.items.stream()
+                .anyMatch(item -> item.getProduct().equals(product));
     }
 
     private void recalculateSubtotal() {

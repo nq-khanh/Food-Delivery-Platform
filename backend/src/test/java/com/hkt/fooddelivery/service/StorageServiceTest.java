@@ -1,4 +1,4 @@
-package com.hkt.fooddelivery.service.unit;
+package com.hkt.fooddelivery.service;
 
 import com.hkt.fooddelivery.config.MinioProperties;
 import com.hkt.fooddelivery.exception.FileSizeExceededException;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class StorageServiceImplTest {
+class StorageServiceTest {
 
     @Mock
     private MinioClient minioClient;

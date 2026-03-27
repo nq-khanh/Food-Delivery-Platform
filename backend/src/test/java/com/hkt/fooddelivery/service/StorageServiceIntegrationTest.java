@@ -1,6 +1,5 @@
-package com.hkt.fooddelivery.service.integration;
+package com.hkt.fooddelivery.service;
 
-import com.hkt.fooddelivery.service.StorageService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

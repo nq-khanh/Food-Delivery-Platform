@@ -35,6 +35,12 @@ public class Product {
     @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
+    @Column(name = "rating_avg", precision = 2, scale = 1)
+    private BigDecimal ratingAvg = BigDecimal.ZERO;
+
+    @Column(name = "review_count")
+    private int reviewCount;
+
     @Column(name = "is_available")
     private boolean isAvailable = true;
 
@@ -62,6 +68,8 @@ public class Product {
     public BigDecimal getPrice() { return price; }
     public String getDescription() { return description; }
     public String getImageUrl() { return imageUrl; }
+    public BigDecimal getRatingAvg() { return ratingAvg; }
+    public int getReviewCount() { return reviewCount; }
     public boolean isAvailable() { return isAvailable; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
@@ -110,6 +118,15 @@ public class Product {
         this.isAvailable = false;
     }
 
+    public void updateRating(int newRating) {
+        BigDecimal totalScore = this.ratingAvg
+                .multiply(BigDecimal.valueOf(this.reviewCount))
+                .add(BigDecimal.valueOf(newRating));
+
+        this.reviewCount++;
+        this.ratingAvg = totalScore.divide(BigDecimal.valueOf(this.reviewCount), 1, RoundingMode.HALF_UP);
+    }
+
     private String normalizeName(String name) {
         Objects.requireNonNull(name);
         String value = name.trim();
@@ -125,5 +142,12 @@ public class Product {
             throw new IllegalArgumentException("Price must be >= 0");
         }
         return price.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Product product)) return false;
+        return id != null && id.equals(product.getId());
     }
 }

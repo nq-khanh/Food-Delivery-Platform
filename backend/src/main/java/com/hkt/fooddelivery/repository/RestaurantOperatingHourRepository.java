@@ -3,7 +3,7 @@ package com.hkt.fooddelivery.repository;
 import java.util.List;
 import java.util.UUID;
 
-import com.hkt.fooddelivery.entity.DayOfWeek;
+import com.hkt.fooddelivery.entity.enums.DayOfWeek;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.hkt.fooddelivery.entity.RestaurantOperatingHour;
 
