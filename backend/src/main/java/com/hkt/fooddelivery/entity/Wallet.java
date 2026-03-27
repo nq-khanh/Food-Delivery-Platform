@@ -3,9 +3,12 @@ package com.hkt.fooddelivery.entity;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.hkt.fooddelivery.entity.enums.WalletTransactionType;
 import jakarta.persistence.*;
 
 @Entity
@@ -35,6 +38,12 @@ public class Wallet {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WalletTransaction> transactions = new ArrayList<>();
+
+    @Version
+    private Long version;
+
     @PrePersist
     protected void onCreate() {
         this.updatedAt = Instant.now();
@@ -42,6 +51,15 @@ public class Wallet {
 
     @PreUpdate
     protected void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
+
+    protected Wallet() {
+    }
+
+    public Wallet(User user) {
+        this.user = Objects.requireNonNull(user);
+        this.balance = BigDecimal.ZERO.setScale(2);
         this.updatedAt = Instant.now();
     }
 
@@ -53,28 +71,89 @@ public class Wallet {
     public String getBankAccountHolder() { return bankAccountHolder; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-    protected Wallet() {
+    public List<WalletTransaction> getTransactions() {
+        return List.copyOf(transactions);
     }
 
-    public Wallet(User user) {
-        this.user = Objects.requireNonNull(user);
-        this.balance = BigDecimal.ZERO.setScale(2);
-        this.updatedAt = Instant.now();
+
+    public void credit(BigDecimal amount, Order order, String description) {
+        Objects.requireNonNull(amount);
+        Objects.requireNonNull(order, "Order is required for credit");
+
+        if (amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+
+        this.balance = normalize(this.balance.add(amount));
+
+        WalletTransaction tx = new WalletTransaction(
+                this,
+                order,
+                WalletTransactionType.ORDER_REVENUE,
+                amount,
+                description,
+                generateCode()
+        );
+
+        this.transactions.add(tx);
     }
 
-    public void credit(BigDecimal amount) {
-        amount = normalizeAmount(amount);
-        this.balance = this.balance.add(amount);
-    }
+    public WalletTransaction debitForPayout(BigDecimal amount, PayoutRequest request) {
+        Objects.requireNonNull(amount);
+        Objects.requireNonNull(request);
 
-    public void debit(BigDecimal amount) {
-        amount = normalizeAmount(amount);
+        if (amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
 
         if (this.balance.compareTo(amount) < 0) {
             throw new IllegalStateException("Insufficient balance");
         }
 
-        this.balance = this.balance.subtract(amount);
+        this.balance = normalize(this.balance.subtract(amount));
+
+        WalletTransaction tx = new WalletTransaction(
+                this,
+                null,
+                WalletTransactionType.WITHDRAWAL,
+                amount.negate(),
+                "Payout: " + request.getId(),
+                generateCode()
+        );
+
+        this.transactions.add(tx);
+
+        return tx;
+    }
+
+    public void debit(BigDecimal amount, WalletTransactionType type, String description) {
+        Objects.requireNonNull(amount);
+        Objects.requireNonNull(type, "Transaction type is required");
+
+        if (amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+
+        if (this.balance.compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient balance");
+        }
+
+        if (type == WalletTransactionType.ORDER_REVENUE) {
+            throw new IllegalArgumentException("Invalid transaction type for debit");
+        }
+
+        this.balance = normalize(this.balance.subtract(amount));
+
+        WalletTransaction tx = new WalletTransaction(
+                this,
+                null,
+                type,
+                amount.negate(),
+                description,
+                generateCode()
+        );
+
+        this.transactions.add(tx);
     }
 
     public void updateBankInfo(String name, String number, String holder) {
@@ -89,12 +168,16 @@ public class Wallet {
         this.bankAccountHolder = null;
     }
 
-    private BigDecimal normalizeAmount(BigDecimal amount) {
-        Objects.requireNonNull(amount);
-        if (amount.signum() <= 0) {
-            throw new IllegalArgumentException("Amount must be > 0");
-        }
-        return amount.setScale(2, RoundingMode.HALF_UP);
+    public void receiveOrderRevenue(Order order, BigDecimal amount) {
+        credit(amount, order, "Order revenue: " + order.getOrderCode());
+    }
+
+    public void withdraw(BigDecimal amount) {
+        debit(amount, WalletTransactionType.WITHDRAWAL, "Withdraw");
+    }
+
+    public void refund(Order order, BigDecimal amount) {
+        debit(amount, WalletTransactionType.REFUND, "Refund order: " + order.getOrderCode());
     }
 
     private String requireNonBlank(String value) {
@@ -104,5 +187,13 @@ public class Wallet {
             throw new IllegalArgumentException("Value cannot be blank");
         }
         return trimmed;
+    }
+
+    private BigDecimal normalize(BigDecimal value) {
+        return value.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private String generateCode() {
+        return "TX-" + UUID.randomUUID();
     }
 }

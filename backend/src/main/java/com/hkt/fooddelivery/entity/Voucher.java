@@ -67,7 +67,20 @@ public class Voucher {
         this.updatedAt = Instant.now();
     }
 
-    // ================= GETTER =================
+    protected Voucher() {}
+
+    public Voucher(String code, DiscountType discountType, BigDecimal discountValue, Instant expiryDate) {
+        this.code = normalize(code);
+        this.discountType = Objects.requireNonNull(discountType);
+        this.discountValue = validateDiscount(discountValue);
+        this.expiryDate = Objects.requireNonNull(expiryDate);
+
+        this.targetType = TargetType.ORDER;
+        this.minOrderValue = BigDecimal.ZERO;
+        this.usageLimit = 1;
+        this.usedCount = 0;
+        this.isActive = true;
+    }
 
     public UUID getId() { return id; }
     public String getCode() { return code; }
@@ -82,22 +95,6 @@ public class Voucher {
     public boolean isActive() { return isActive; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
-
-    protected Voucher() {}
-
-
-    public Voucher(String code, DiscountType discountType, BigDecimal discountValue, Instant expiryDate) {
-        this.code = normalize(code);
-        this.discountType = Objects.requireNonNull(discountType);
-        this.discountValue = validateDiscount(discountValue);
-        this.expiryDate = Objects.requireNonNull(expiryDate);
-
-        this.targetType = TargetType.ORDER;
-        this.minOrderValue = BigDecimal.ZERO;
-        this.usageLimit = 1;
-        this.usedCount = 0;
-        this.isActive = true;
-    }
 
     public boolean isExpired() {
         return Instant.now().isAfter(expiryDate);

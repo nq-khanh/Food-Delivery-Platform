@@ -146,10 +146,6 @@ public class Order {
         this.notes = notes;
     }
 
-    private void generateOrderCode() {
-        this.orderCode = "ORD-" + System.currentTimeMillis();
-    }
-
     public void setShippingFee(BigDecimal shippingFee) {
         this.shippingFee = shippingFee;
         recalculateTotal();
