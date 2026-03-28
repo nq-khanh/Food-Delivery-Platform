@@ -19,6 +19,8 @@ spring:
     baseline-on-migrate: true
 
 app:
+  embedding:
+    api-url: ${EMBEDDING_API_URL:http://localhost:8000}
   jwt:
     secret: ${JWT_SECRET:w6WURf8RWmaS3Ned1m8YHtwDI1PWc9kO0D06ewpOv8c=}
     access-token-expiration-ms: 900000        # 15 phút
