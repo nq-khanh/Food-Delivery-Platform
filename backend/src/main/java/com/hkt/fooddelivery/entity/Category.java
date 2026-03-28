@@ -24,10 +24,10 @@ public class Category {
     private Integer displayOrder = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    protected Instant createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    protected Instant updatedAt;
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -40,13 +40,6 @@ public class Category {
         this.updatedAt = Instant.now();
     }
 
-    public Integer getId() { return id; }
-    public Restaurant getRestaurant() { return restaurant; }
-    public String getName() { return name; }
-    public Integer getDisplayOrder() { return displayOrder; }
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
-
     protected Category() {}
 
     public Category(Restaurant restaurant, String name) {
@@ -54,6 +47,13 @@ public class Category {
         this.name = normalize(name);
         this.displayOrder = 0;
     }
+
+    public Integer getId() { return id; }
+    public Restaurant getRestaurant() { return restaurant; }
+    public String getName() { return name; }
+    public Integer getDisplayOrder() { return displayOrder; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
 
     public void rename(String name) {
         this.name = normalize(name);

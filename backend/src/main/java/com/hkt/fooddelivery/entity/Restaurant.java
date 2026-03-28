@@ -3,10 +3,16 @@ package com.hkt.fooddelivery.entity;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import com.hkt.fooddelivery.entity.enums.ApprovalStatus;
+import com.hkt.fooddelivery.entity.enums.DayOfWeek;
 import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 
@@ -51,10 +57,16 @@ public class Restaurant {
     private boolean isActive = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    protected Instant createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    protected Instant updatedAt;
+    private Instant updatedAt;
+
+    @OneToOne(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private RestaurantEmbedding embedding;
+
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RestaurantOperatingHour> operatingHours = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -65,6 +77,19 @@ public class Restaurant {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    protected Restaurant() {}
+
+    public Restaurant(User owner, String name, String address, Point location) {
+        this.owner = Objects.requireNonNull(owner);
+        this.name = requireNonBlank(name);
+        this.address = requireNonBlank(address);
+        this.location = Objects.requireNonNull(location);
+
+        this.approvalStatus = ApprovalStatus.PENDING;
+        this.ratingAvg = BigDecimal.ZERO.setScale(1);
+        this.isActive = false;
     }
 
     public UUID getId() { return id; }
@@ -80,18 +105,6 @@ public class Restaurant {
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-    protected Restaurant() {}
-
-    public Restaurant(User owner, String name, String address, Point location) {
-        this.owner = Objects.requireNonNull(owner);
-        this.name = requireNonBlank(name);
-        this.address = requireNonBlank(address);
-        this.location = Objects.requireNonNull(location);
-
-        this.approvalStatus = ApprovalStatus.PENDING;
-        this.ratingAvg = BigDecimal.ZERO.setScale(1);
-        this.isActive = false;
-    }
 
     public void updateInfo(String name, String address, String description) {
         this.name = requireNonBlank(name);
@@ -144,6 +157,35 @@ public class Restaurant {
 
         this.reviewCount++;
         this.ratingAvg = totalScore.divide(BigDecimal.valueOf(this.reviewCount), 1, RoundingMode.HALF_UP);
+    }
+
+    public void setAIEmbedding(float[] vector) {
+        this.embedding = new RestaurantEmbedding(this, vector);
+    }
+
+    public void addOperatingHour(DayOfWeek day, LocalTime open, LocalTime close) {
+        RestaurantOperatingHour hour = new RestaurantOperatingHour(this, day, open, close);
+        this.operatingHours.add(hour);
+    }
+
+    public boolean isOpenNow(Instant now) {
+        if (!this.isActive || this.approvalStatus != ApprovalStatus.APPROVED) {
+            return false;
+        }
+
+        ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+        ZonedDateTime zdt = now.atZone(zoneId);
+
+        DayOfWeek currentDay = DayOfWeek.valueOf(zdt.getDayOfWeek().name());
+        LocalTime currentTime = zdt.toLocalTime();
+
+        return this.operatingHours.stream()
+                .filter(oh -> oh.getDayOfWeek() == currentDay)
+                .anyMatch(oh -> oh.isOpenAt(currentTime));
+    }
+
+    public boolean isOpenNow() {
+        return isOpenNow(Instant.now());
     }
 
     private String requireNonBlank(String value) {

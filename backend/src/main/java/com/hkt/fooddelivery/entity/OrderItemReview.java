@@ -44,7 +44,7 @@ public class OrderItemReview {
 
     protected OrderItemReview() {}
 
-    protected OrderItemReview(OrderReview orderReview, Product product, int rating) {
+    OrderItemReview(OrderReview orderReview, Product product, int rating) {
         this.orderReview = Objects.requireNonNull(orderReview);
         this.product = Objects.requireNonNull(product);
         this.rating = validateRating(rating);
@@ -61,20 +61,20 @@ public class OrderItemReview {
     public boolean isVisible() { return  isVisible; }
 
 
-    public void updateContent(String comment, String imageUrl) {
+    void updateContent(String comment, String imageUrl) {
         this.comment = comment;
         this.imageUrl = imageUrl;
     }
 
-    public void changeRating(int rating) {
+    void changeRating(int rating) {
         this.rating = validateRating(rating);
     }
 
-    public void hide() {
+    void hide() {
         this.isVisible = false;
     }
 
-    public void show() {
+    void show() {
         this.isVisible = true;
     }
 

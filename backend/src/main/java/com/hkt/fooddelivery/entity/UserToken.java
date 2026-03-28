@@ -33,7 +33,7 @@ public class UserToken {
     private boolean isRevoked = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    protected Instant createdAt;
+    private Instant createdAt;
 
     @PrePersist
     protected void onCreate() {
@@ -50,7 +50,7 @@ public class UserToken {
 
     protected UserToken() {}
 
-    public UserToken(User user, String tokenHash, TokenType type, Instant expiresAt) {
+    UserToken(User user, String tokenHash, TokenType type, Instant expiresAt) {
         this.user = Objects.requireNonNull(user);
         this.tokenHash = requireNonBlank(tokenHash);
         this.type = Objects.requireNonNull(type);
@@ -63,16 +63,16 @@ public class UserToken {
         this.isRevoked = false;
     }
 
-    public void revoke() {
+    void revoke() {
         if (this.isRevoked) return;
         this.isRevoked = true;
     }
 
-    public boolean isExpired() {
+    boolean isExpired() {
         return Instant.now().isAfter(expiresAt);
     }
 
-    public boolean isActive() {
+    boolean isActive() {
         return !isRevoked && !isExpired();
     }
 

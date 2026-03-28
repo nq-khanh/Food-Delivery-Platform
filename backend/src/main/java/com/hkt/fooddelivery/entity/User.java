@@ -1,11 +1,15 @@
 package com.hkt.fooddelivery.entity;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import com.hkt.fooddelivery.entity.enums.Role;
+import com.hkt.fooddelivery.entity.enums.TokenType;
 import jakarta.persistence.*;
+import org.locationtech.jts.geom.Point;
 
 @Entity
 @Table(name = "users")
@@ -52,6 +56,12 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     protected Instant updatedAt;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserAddress> addresses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserToken> tokens = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();
@@ -61,6 +71,21 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    protected User() {}
+
+    public User(String username, String email, String phone, String firstName, String lastName, String passwordHash) {
+        this.username = requireNonBlank(username).toLowerCase();
+        this.email = normalizeEmail(email);
+        this.phone = requireNonBlank(phone);
+        this.firstName = requireNonBlank(firstName);
+        this.lastName = requireNonBlank(lastName);
+        this.passwordHash = Objects.requireNonNull(passwordHash);
+
+        this.role = Role.USER;
+        this.isActive = true;
+        this.isVerified = false;
     }
 
 
@@ -78,19 +103,12 @@ public class User {
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-    protected User() {}
+    public List<UserAddress> getAddresses() {
+        return List.copyOf(addresses);
+    }
 
-    public User(String username, String email, String phone, String firstName, String lastName, String passwordHash) {
-        this.username = requireNonBlank(username).toLowerCase();
-        this.email = normalizeEmail(email);
-        this.phone = requireNonBlank(phone);
-        this.firstName = requireNonBlank(firstName);
-        this.lastName = requireNonBlank(lastName);
-        this.passwordHash = Objects.requireNonNull(passwordHash);
-
-        this.role = Role.USER;
-        this.isActive = true;
-        this.isVerified = false;
+    public List<UserToken> getTokens() {
+        return List.copyOf(tokens);
     }
 
     public void changeEmail(String email) {
@@ -130,6 +148,45 @@ public class User {
     public void changePassword(String hashedPassword) {
         this.passwordHash = Objects.requireNonNull(hashedPassword);
     }
+
+    public void addAddress(String fullAddress, Point location, boolean isDefault) {
+        if (this.addresses.size() >= 5) {
+            throw new IllegalStateException("Maximum 5 addresses allowed per user");
+        }
+
+        UserAddress newAddress = new UserAddress(this, fullAddress, location);
+
+        if (isDefault || this.addresses.isEmpty()) {
+            makeDefault(newAddress);
+        }
+        this.addresses.add(newAddress);
+    }
+
+    public void setDefaultAddress(UUID addressId) {
+        UserAddress target = this.addresses.stream()
+                .filter(a -> a.getId().equals(addressId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Address not found"));
+
+        makeDefault(target);
+    }
+
+    public void addToken(String tokenHash, TokenType type, Instant expiresAt) {
+        this.tokens.removeIf(t -> t.isExpired() || t.isRevoked());
+
+        UserToken newToken = new UserToken(this, tokenHash, type, expiresAt);
+        this.tokens.add(newToken);
+    }
+
+    private void makeDefault(UserAddress target) {
+        this.addresses.forEach(UserAddress::unmarkDefault);
+        target.markAsDefault();
+    }
+
+    public void revokeAllTokens() {
+        this.tokens.forEach(UserToken::revoke);
+    }
+
 
     private String normalizeEmail(String email) {
         Objects.requireNonNull(email);

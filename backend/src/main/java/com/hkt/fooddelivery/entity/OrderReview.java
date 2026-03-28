@@ -64,7 +64,7 @@ public class OrderReview {
 
     }
 
-    protected OrderReview(Order order) {
+    OrderReview(Order order) {
         this.order = Objects.requireNonNull(order);
         this.restaurant = order.getRestaurant();
     }
@@ -88,7 +88,7 @@ public class OrderReview {
     }
 
 
-    public void reviewRestaurant(int rating, String comment) {
+    void reviewRestaurant(int rating, String comment) {
         if (this.restaurantRating != null) {
             throw new IllegalStateException("Already reviewed");
         }
@@ -99,7 +99,7 @@ public class OrderReview {
         this.comment = comment;
     }
 
-    public void reviewShipper(int rating) {
+    void reviewShipper(int rating) {
         if (this.shipperRating != null) {
             throw new IllegalStateException("Shipper already reviewed");
         }
@@ -116,7 +116,7 @@ public class OrderReview {
         this.shipperRating = rating;
     }
 
-    public void addItemReview(Product product, int rating, String comment, String imageUrl) {
+    void addItemReview(Product product, int rating, String comment, String imageUrl) {
 
         boolean exists = itemReviews.stream()
                 .anyMatch(r -> r.getProduct().equals(product));
@@ -131,7 +131,7 @@ public class OrderReview {
         this.itemReviews.add(itemReview);
     }
 
-    public void replyByRestaurant(String content) {
+    void replyByRestaurant(String content) {
         if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("Reply content cannot be blank");
         }
@@ -139,11 +139,11 @@ public class OrderReview {
         this.repliedAt = Instant.now();
     }
 
-    public void hide() {
+    void hide() {
         this.isVisible = false;
     }
 
-    public void show() {
+    void show() {
         this.isVisible = true;
     }
 

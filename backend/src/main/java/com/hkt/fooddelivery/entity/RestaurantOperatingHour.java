@@ -33,10 +33,10 @@ public class RestaurantOperatingHour {
     private boolean isClosed = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    protected Instant createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    protected Instant updatedAt;
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -60,7 +60,7 @@ public class RestaurantOperatingHour {
 
     protected RestaurantOperatingHour() {}
 
-    public RestaurantOperatingHour(
+    RestaurantOperatingHour(
             Restaurant restaurant,
             DayOfWeek dayOfWeek,
             LocalTime openTime,
@@ -73,7 +73,7 @@ public class RestaurantOperatingHour {
         this.isClosed = false;
     }
 
-    public void setOperatingHours(LocalTime openTime, LocalTime closeTime) {
+    void setOperatingHours(LocalTime openTime, LocalTime closeTime) {
         Objects.requireNonNull(openTime);
         Objects.requireNonNull(closeTime);
 
@@ -86,17 +86,17 @@ public class RestaurantOperatingHour {
         this.isClosed = false;
     }
 
-    public void closeAllDay() {
+    void closeAllDay() {
         this.isClosed = true;
     }
 
-    public boolean isOpenAt(LocalTime time) {
-        if (isClosed) return false;
+    boolean isOpenAt(LocalTime time) {
+        if (this.isClosed) return false;
 
         if (openTime.isBefore(closeTime)) {
             return !time.isBefore(openTime) && time.isBefore(closeTime);
-        } else {
-            return !time.isBefore(openTime) || time.isBefore(closeTime);
         }
+
+        return !time.isBefore(openTime) || time.isBefore(closeTime);
     }
 }

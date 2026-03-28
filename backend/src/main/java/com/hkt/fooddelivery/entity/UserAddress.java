@@ -32,10 +32,10 @@ public class UserAddress {
     private boolean isDefault = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    protected Instant createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    protected Instant updatedAt;
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -50,7 +50,7 @@ public class UserAddress {
 
     protected UserAddress() {}
 
-    public UserAddress(User user, String fullAddress, Point location) {
+    UserAddress(User user, String fullAddress, Point location) {
         this.user = Objects.requireNonNull(user);
         this.fullAddress = requireNonBlank(fullAddress);
         this.location = Objects.requireNonNull(location);
@@ -66,11 +66,11 @@ public class UserAddress {
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-    public void rename(String addressName) {
+    void rename(String addressName) {
         this.addressName = addressName != null ? addressName.trim() : null;
     }
 
-    public void changeAddress(String fullAddress, Point location) {
+    void changeAddress(String fullAddress, Point location) {
         this.fullAddress = requireNonBlank(fullAddress);
         this.location = Objects.requireNonNull(location);
     }

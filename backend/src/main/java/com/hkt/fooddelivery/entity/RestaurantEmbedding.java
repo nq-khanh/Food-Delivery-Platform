@@ -28,18 +28,17 @@ public class RestaurantEmbedding {
     protected RestaurantEmbedding() {
     }
 
-    public RestaurantEmbedding(Restaurant restaurant, float[] embedding) {
+    RestaurantEmbedding(Restaurant restaurant, float[] embedding) {
         this.restaurant = Objects.requireNonNull(restaurant);
         setEmbedding(embedding);
     }
 
-    public UUID getRestaurantId() { return restaurantId; }
     public Restaurant getRestaurant() { return restaurant; }
     public float[] getEmbedding() { return embedding; }
 
     private static final int DIMENSION = 1536;
 
-    public void setEmbedding(float[] embedding) {
+    void setEmbedding(float[] embedding) {
         Objects.requireNonNull(embedding);
         if (embedding.length != DIMENSION) {
             throw new IllegalArgumentException("Invalid embedding dimension");

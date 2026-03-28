@@ -19,8 +19,12 @@ public class OrderReviewListener {
             shipper.updateRating(review.getShipperRating());
         }
 
-        review.getItemReviews().forEach(itemReview -> {
-            itemReview.getProduct().updateRating(itemReview.getRating());
-        });
+        if (review.getItemReviews() != null) {
+            review.getItemReviews().forEach(itemReview -> {
+                if (itemReview.getProduct() != null) {
+                    itemReview.getProduct().updateRating(itemReview.getRating());
+                }
+            });
+        }
     }
 }

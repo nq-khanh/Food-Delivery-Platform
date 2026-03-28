@@ -48,7 +48,7 @@ public class WalletTransaction {
 
     protected WalletTransaction() {}
 
-    protected WalletTransaction(
+    WalletTransaction(
             Wallet wallet,
             Order order,
             WalletTransactionType type,

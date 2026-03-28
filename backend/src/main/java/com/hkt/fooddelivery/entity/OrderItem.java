@@ -33,7 +33,7 @@ public class OrderItem {
 
     protected OrderItem() {}
 
-    protected OrderItem(Order order, Product product, int quantity, BigDecimal price) {
+    OrderItem(Order order, Product product, int quantity, BigDecimal price) {
         this.order = order;
         this.product = product;
         this.quantity = quantity;
@@ -44,7 +44,7 @@ public class OrderItem {
         return priceAtPurchase.multiply(BigDecimal.valueOf(quantity));
     }
 
-    public void addQuantity(int additionalQuantity) {
+    void addQuantity(int additionalQuantity) {
         if (additionalQuantity <= 0) {
             throw new IllegalArgumentException("Quantity to add must be positive");
         }

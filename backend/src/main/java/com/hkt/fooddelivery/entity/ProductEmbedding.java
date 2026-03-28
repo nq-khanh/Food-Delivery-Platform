@@ -33,13 +33,12 @@ public class ProductEmbedding {
         setEmbedding(embedding);
     }
 
-    public UUID getProductId() { return productId; }
     public Product getProduct() { return product; }
     public float[] getEmbedding() { return embedding; }
 
     private static final int DIMENSION = 1536;
 
-    public void setEmbedding(float[] embedding) {
+    void setEmbedding(float[] embedding) {
         Objects.requireNonNull(embedding);
         if (embedding.length != DIMENSION) {
             throw new IllegalArgumentException("Invalid embedding dimension");

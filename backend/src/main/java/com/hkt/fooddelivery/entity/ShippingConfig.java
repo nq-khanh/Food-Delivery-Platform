@@ -37,10 +37,10 @@ public class ShippingConfig {
     private Instant activeTo;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    protected Instant createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    protected Instant updatedAt;
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {

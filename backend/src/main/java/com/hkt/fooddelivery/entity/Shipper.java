@@ -46,12 +46,12 @@ public class Shipper {
     private Instant updatedAt;
 
     @PrePersist
-    protected void onCreate() {
+    private void onCreate() {
         this.updatedAt = Instant.now();
     }
 
     @PreUpdate
-    protected void onUpdate() {
+    private void onUpdate() {
         this.updatedAt = Instant.now();
     }
 
