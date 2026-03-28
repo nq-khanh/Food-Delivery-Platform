@@ -144,7 +144,6 @@ public class StorageServiceImpl implements StorageService {
         }
     }
 
-    // --- Private Helpers ---
 
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) throw new StorageUploadException("File không được để trống");
