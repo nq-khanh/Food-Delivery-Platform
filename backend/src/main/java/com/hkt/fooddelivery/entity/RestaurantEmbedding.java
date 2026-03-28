@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import java.util.Objects;
 import java.util.UUID;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Array;
@@ -14,36 +15,34 @@ public class RestaurantEmbedding {
     @Column(name = "restaurant_id")
     private UUID restaurantId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
     @JoinColumn(name = "restaurant_id")
     private Restaurant restaurant;
 
-    @Column(name = "embedding")
+    @Column(name = "embedding", nullable = false)
     @JdbcTypeCode(SqlTypes.VECTOR)
     @Array(length = 1536)
     private float[] embedding;
 
-    public RestaurantEmbedding() {
+    protected RestaurantEmbedding() {
     }
 
-    public RestaurantEmbedding(Restaurant restaurant, float[] embedding) {
-        this.restaurant = restaurant;
-        this.restaurantId = restaurant.getId();
-        this.embedding = embedding;
+    RestaurantEmbedding(Restaurant restaurant, float[] embedding) {
+        this.restaurant = Objects.requireNonNull(restaurant);
+        setEmbedding(embedding);
     }
-
-    // ── Getters & Setters ──────────────────────────────────────
-
-    public UUID getRestaurantId() { return restaurantId; }
-    public void setRestaurantId(UUID restaurantId) { this.restaurantId = restaurantId; }
 
     public Restaurant getRestaurant() { return restaurant; }
-    public void setRestaurant(Restaurant restaurant) {
-        this.restaurant = restaurant;
-        this.restaurantId = restaurant.getId();
-    }
-
     public float[] getEmbedding() { return embedding; }
-    public void setEmbedding(float[] embedding) { this.embedding = embedding; }
+
+    private static final int DIMENSION = 1536;
+
+    void setEmbedding(float[] embedding) {
+        Objects.requireNonNull(embedding);
+        if (embedding.length != DIMENSION) {
+            throw new IllegalArgumentException("Invalid embedding dimension");
+        }
+        this.embedding = embedding.clone();
+    }
 }

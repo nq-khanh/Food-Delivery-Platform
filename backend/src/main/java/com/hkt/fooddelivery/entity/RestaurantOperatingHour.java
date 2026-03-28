@@ -2,6 +2,9 @@ package com.hkt.fooddelivery.entity;
 
 import java.time.Instant;
 import java.time.LocalTime;
+import java.util.Objects;
+
+import com.hkt.fooddelivery.entity.enums.DayOfWeek;
 import jakarta.persistence.*;
 
 @Entity
@@ -12,12 +15,13 @@ public class RestaurantOperatingHour {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
 
-    @Column(name = "day_of_week")
-    private Integer dayOfWeek;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_of_week", nullable = false, length = 10)
+    private DayOfWeek dayOfWeek;
 
     @Column(name = "open_time", nullable = false)
     private LocalTime openTime;
@@ -31,73 +35,68 @@ public class RestaurantOperatingHour {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
-
-    public RestaurantOperatingHour() {
-    }
-
-    // ── Getters & Setters ──────────────────────────────────────
 
     public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-
     public Restaurant getRestaurant() { return restaurant; }
-    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
-
-    public Integer getDayOfWeek() { return dayOfWeek; }
-    public void setDayOfWeek(Integer dayOfWeek) { this.dayOfWeek = dayOfWeek; }
-
+    public DayOfWeek getDayOfWeek() { return dayOfWeek; }
     public LocalTime getOpenTime() { return openTime; }
-    public void setOpenTime(LocalTime openTime) { this.openTime = openTime; }
-
     public LocalTime getCloseTime() { return closeTime; }
-    public void setCloseTime(LocalTime closeTime) { this.closeTime = closeTime; }
-
     public boolean isClosed() { return isClosed; }
-    public void setClosed(boolean closed) { isClosed = closed; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-    // ── Builder ────────────────────────────────────────────────
+    protected RestaurantOperatingHour() {}
 
-    public static RestaurantOperatingHourBuilder builder() {
-        return new RestaurantOperatingHourBuilder();
+    RestaurantOperatingHour(
+            Restaurant restaurant,
+            DayOfWeek dayOfWeek,
+            LocalTime openTime,
+            LocalTime closeTime
+    ) {
+        this.restaurant = Objects.requireNonNull(restaurant);
+        this.dayOfWeek = Objects.requireNonNull(dayOfWeek);
+
+        setOperatingHours(openTime, closeTime);
+        this.isClosed = false;
     }
 
-    public static final class RestaurantOperatingHourBuilder {
-        private Restaurant restaurant;
-        private Integer dayOfWeek;
-        private LocalTime openTime;
-        private LocalTime closeTime;
-        private boolean isClosed = false;
+    void setOperatingHours(LocalTime openTime, LocalTime closeTime) {
+        Objects.requireNonNull(openTime);
+        Objects.requireNonNull(closeTime);
 
-        public RestaurantOperatingHourBuilder restaurant(Restaurant restaurant) { this.restaurant = restaurant; return this; }
-        public RestaurantOperatingHourBuilder dayOfWeek(Integer dayOfWeek) { this.dayOfWeek = dayOfWeek; return this; }
-        public RestaurantOperatingHourBuilder openTime(LocalTime openTime) { this.openTime = openTime; return this; }
-        public RestaurantOperatingHourBuilder closeTime(LocalTime closeTime) { this.closeTime = closeTime; return this; }
-        public RestaurantOperatingHourBuilder isClosed(boolean isClosed) { this.isClosed = isClosed; return this; }
-
-        public RestaurantOperatingHour build() {
-            RestaurantOperatingHour hour = new RestaurantOperatingHour();
-            hour.setRestaurant(restaurant);
-            hour.setDayOfWeek(dayOfWeek);
-            hour.setOpenTime(openTime);
-            hour.setCloseTime(closeTime);
-            hour.setClosed(isClosed);
-            return hour;
+        if (openTime.equals(closeTime)) {
+            throw new IllegalArgumentException("Open and close time cannot be equal");
         }
+
+        this.openTime = openTime;
+        this.closeTime = closeTime;
+        this.isClosed = false;
+    }
+
+    void closeAllDay() {
+        this.isClosed = true;
+    }
+
+    boolean isOpenAt(LocalTime time) {
+        if (this.isClosed) return false;
+
+        if (openTime.isBefore(closeTime)) {
+            return !time.isBefore(openTime) && time.isBefore(closeTime);
+        }
+
+        return !time.isBefore(openTime) || time.isBefore(closeTime);
     }
 }
