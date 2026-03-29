@@ -1,8 +1,15 @@
 package com.hkt.fooddelivery.entity;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+
+import com.hkt.fooddelivery.entity.enums.Role;
+import com.hkt.fooddelivery.entity.enums.TokenType;
 import jakarta.persistence.*;
+import org.locationtech.jts.geom.Point;
 
 @Entity
 @Table(name = "users")
@@ -18,7 +25,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "password_hash", length = 255)
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
@@ -44,110 +51,158 @@ public class User {
     private boolean isActive = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    protected Instant createdAt;
 
-    @Column(name = "updated_at")
-    private Instant updatedAt;
+    @Column(name = "updated_at", nullable = false)
+    protected Instant updatedAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserAddress> addresses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserToken> tokens = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
-    public User() {
+    protected User() {}
+
+    public User(String username, String email, String phone, String firstName, String lastName, String passwordHash) {
+        this.username = requireNonBlank(username).toLowerCase();
+        this.email = normalizeEmail(email);
+        this.phone = requireNonBlank(phone);
+        this.firstName = requireNonBlank(firstName);
+        this.lastName = requireNonBlank(lastName);
+        this.passwordHash = Objects.requireNonNull(passwordHash);
+
+        this.role = Role.USER;
+        this.isActive = true;
+        this.isVerified = false;
     }
 
-    public User(String email, String passwordHash, Role role, String firstName, String lastName, String phone) {
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.role = role;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
-    }
 
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
     public String getUsername() {return  username; }
-    public void setUsername(String username) {this.username = username; }
-
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
     public String getPasswordHash() { return passwordHash; }
-    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
-
     public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
-
     public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-
     public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-
     public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-
     public String getAvatarUrl() { return avatarUrl; }
-    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
-
     public boolean isVerified() { return isVerified; }
-    public void setVerified(boolean verified) { isVerified = verified; }
-
     public boolean isActive() { return isActive; }
-    public void setActive(boolean active) { isActive = active; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-    public static UserBuilder builder() {
-        return new UserBuilder();
+    public List<UserAddress> getAddresses() {
+        return List.copyOf(addresses);
     }
 
-    public static final class UserBuilder {
-        private String username;
-        private String email;
-        private String passwordHash;
-        private Role role;
-        private String firstName;
-        private String lastName;
-        private String phone;
-        private String avatarUrl;
-        private boolean isVerified;
-        private boolean isActive;
+    public List<UserToken> getTokens() {
+        return List.copyOf(tokens);
+    }
 
-        public UserBuilder username(String username) { this.username = username; return this; }
-        public UserBuilder email(String email) { this.email = email; return this; }
-        public UserBuilder passwordHash(String passwordHash) { this.passwordHash = passwordHash; return this; }
-        public UserBuilder role(Role role) { this.role = role; return this; }
-        public UserBuilder firstName(String firstName) { this.firstName = firstName; return this; }
-        public UserBuilder lastName(String lastName) { this.lastName = lastName; return this; }
-        public UserBuilder phone(String phone) { this.phone = phone; return this; }
-        public UserBuilder avatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; return this; }
-        public UserBuilder isVerified(boolean isVerified) { this.isVerified = isVerified; return this; }
-        public UserBuilder isActive(boolean isActive) { this.isActive = isActive; return this; }
+    public void changeEmail(String email) {
+        this.email = normalizeEmail(email);
+    }
 
-        public User build() {
-            User user = new User();
-            user.setUsername(username); // required: unique not null
-            user.setEmail(email);
-            user.setPasswordHash(passwordHash);
-            user.setRole(role != null ? role : Role.USER);
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setPhone(phone);
-            user.setAvatarUrl(avatarUrl);
-            user.setVerified(isVerified);
-            user.setActive(isActive);
-            return user;
+    public void changePhone(String phone) {
+        this.phone = requireNonBlank(phone);
+    }
+
+    public void changeProfile(String firstName, String lastName) {
+        this.firstName = requireNonBlank(firstName);
+        this.lastName = requireNonBlank(lastName);
+    }
+
+    public void activate() {
+        this.isActive = true;
+    }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
+
+    public void verify() {
+        if (!isActive) {
+            throw new IllegalStateException("Cannot verify inactive user");
         }
+        if (isVerified) return;
+        this.isVerified = true;
+    }
+
+    public void changeRole(Role role) {
+        Objects.requireNonNull(role);
+        this.role = role;
+    }
+
+    public void changePassword(String hashedPassword) {
+        this.passwordHash = Objects.requireNonNull(hashedPassword);
+    }
+
+    public void addAddress(String fullAddress, Point location, boolean isDefault) {
+        if (this.addresses.size() >= 5) {
+            throw new IllegalStateException("Maximum 5 addresses allowed per user");
+        }
+
+        UserAddress newAddress = new UserAddress(this, fullAddress, location);
+
+        if (isDefault || this.addresses.isEmpty()) {
+            makeDefault(newAddress);
+        }
+        this.addresses.add(newAddress);
+    }
+
+    public void setDefaultAddress(UUID addressId) {
+        UserAddress target = this.addresses.stream()
+                .filter(a -> a.getId().equals(addressId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Address not found"));
+
+        makeDefault(target);
+    }
+
+    public void addToken(String tokenHash, TokenType type, Instant expiresAt) {
+        this.tokens.removeIf(t -> t.isExpired() || t.isRevoked());
+
+        UserToken newToken = new UserToken(this, tokenHash, type, expiresAt);
+        this.tokens.add(newToken);
+    }
+
+    private void makeDefault(UserAddress target) {
+        this.addresses.forEach(UserAddress::unmarkDefault);
+        target.markAsDefault();
+    }
+
+    public void revokeAllTokens() {
+        this.tokens.forEach(UserToken::revoke);
+    }
+
+
+    private String normalizeEmail(String email) {
+        Objects.requireNonNull(email);
+        String value = email.trim().toLowerCase();
+        if (!value.contains("@")) {
+            throw new IllegalArgumentException("Invalid email");
+        }
+        return value;
+    }
+
+    private String requireNonBlank(String value) {
+        Objects.requireNonNull(value);
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Value cannot be blank");
+        }
+        return trimmed;
     }
 }

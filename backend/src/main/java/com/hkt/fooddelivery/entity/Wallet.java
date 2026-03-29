@@ -1,9 +1,14 @@
 package com.hkt.fooddelivery.entity;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
+import com.hkt.fooddelivery.entity.enums.WalletTransactionType;
 import jakarta.persistence.*;
 
 @Entity
@@ -30,60 +35,165 @@ public class Wallet {
     @Column(name = "bank_account_holder", length = 100)
     private String bankAccountHolder;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WalletTransaction> transactions = new ArrayList<>();
+
+    @Version
+    private Long version;
+
     @PrePersist
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
+    protected void onCreate() {
+        this.updatedAt = Instant.now();
     }
 
-    public Wallet() {}
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
+
+    protected Wallet() {
+    }
+
+    public Wallet(User user) {
+        this.user = Objects.requireNonNull(user);
+        this.balance = BigDecimal.ZERO.setScale(2);
+        this.updatedAt = Instant.now();
+    }
 
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
     public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
     public BigDecimal getBalance() { return balance; }
-    public void setBalance(BigDecimal balance) { this.balance = balance; }
-
     public String getBankName() { return bankName; }
-    public void setBankName(String bankName) { this.bankName = bankName; }
-
     public String getBankAccountNumber() { return bankAccountNumber; }
-    public void setBankAccountNumber(String bankAccountNumber) { this.bankAccountNumber = bankAccountNumber; }
-
     public String getBankAccountHolder() { return bankAccountHolder; }
-    public void setBankAccountHolder(String bankAccountHolder) { this.bankAccountHolder = bankAccountHolder; }
-
     public Instant getUpdatedAt() { return updatedAt; }
 
-    public static WalletBuilder builder() { return new WalletBuilder(); }
+    public List<WalletTransaction> getTransactions() {
+        return List.copyOf(transactions);
+    }
 
-    public static final class WalletBuilder {
-        private User user;
-        private BigDecimal balance = BigDecimal.ZERO;
-        private String bankName;
-        private String bankAccountNumber;
-        private String bankAccountHolder;
 
-        public WalletBuilder user(User user) { this.user = user; return this; }
-        public WalletBuilder balance(BigDecimal balance) { this.balance = balance; return this; }
-        public WalletBuilder bankName(String bankName) { this.bankName = bankName; return this; }
-        public WalletBuilder bankAccountNumber(String bankAccountNumber) { this.bankAccountNumber = bankAccountNumber; return this; }
-        public WalletBuilder bankAccountHolder(String bankAccountHolder) { this.bankAccountHolder = bankAccountHolder; return this; }
+    public void credit(BigDecimal amount, Order order, String description) {
+        Objects.requireNonNull(amount);
+        Objects.requireNonNull(order, "Order is required for credit");
 
-        public Wallet build() {
-            Wallet w = new Wallet();
-            w.setUser(user);
-            w.setBalance(balance != null ? balance : BigDecimal.ZERO);
-            w.setBankName(bankName);
-            w.setBankAccountNumber(bankAccountNumber);
-            w.setBankAccountHolder(bankAccountHolder);
-            return w;
+        if (amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
         }
+
+        this.balance = normalize(this.balance.add(amount));
+
+        WalletTransaction tx = new WalletTransaction(
+                this,
+                order,
+                WalletTransactionType.ORDER_REVENUE,
+                amount,
+                description,
+                generateCode()
+        );
+
+        this.transactions.add(tx);
+    }
+
+    public WalletTransaction debitForPayout(BigDecimal amount, PayoutRequest request) {
+        Objects.requireNonNull(amount);
+        Objects.requireNonNull(request);
+
+        if (amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+
+        if (this.balance.compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient balance");
+        }
+
+        this.balance = normalize(this.balance.subtract(amount));
+
+        WalletTransaction tx = new WalletTransaction(
+                this,
+                null,
+                WalletTransactionType.WITHDRAWAL,
+                amount.negate(),
+                "Payout: " + request.getId(),
+                generateCode()
+        );
+
+        this.transactions.add(tx);
+
+        return tx;
+    }
+
+    public void debit(BigDecimal amount, WalletTransactionType type, String description) {
+        Objects.requireNonNull(amount);
+        Objects.requireNonNull(type, "Transaction type is required");
+
+        if (amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+
+        if (this.balance.compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient balance");
+        }
+
+        if (type == WalletTransactionType.ORDER_REVENUE) {
+            throw new IllegalArgumentException("Invalid transaction type for debit");
+        }
+
+        this.balance = normalize(this.balance.subtract(amount));
+
+        WalletTransaction tx = new WalletTransaction(
+                this,
+                null,
+                type,
+                amount.negate(),
+                description,
+                generateCode()
+        );
+
+        this.transactions.add(tx);
+    }
+
+    public void updateBankInfo(String name, String number, String holder) {
+        this.bankName = requireNonBlank(name);
+        this.bankAccountNumber = requireNonBlank(number);
+        this.bankAccountHolder = requireNonBlank(holder);
+    }
+
+    public void clearBankInfo() {
+        this.bankName = null;
+        this.bankAccountNumber = null;
+        this.bankAccountHolder = null;
+    }
+
+    public void receiveOrderRevenue(Order order, BigDecimal amount) {
+        credit(amount, order, "Order revenue: " + order.getOrderCode());
+    }
+
+    public void withdraw(BigDecimal amount) {
+        debit(amount, WalletTransactionType.WITHDRAWAL, "Withdraw");
+    }
+
+    public void refund(Order order, BigDecimal amount) {
+        debit(amount, WalletTransactionType.REFUND, "Refund order: " + order.getOrderCode());
+    }
+
+    private String requireNonBlank(String value) {
+        Objects.requireNonNull(value);
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Value cannot be blank");
+        }
+        return trimmed;
+    }
+
+    private BigDecimal normalize(BigDecimal value) {
+        return value.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private String generateCode() {
+        return "TX-" + UUID.randomUUID();
     }
 }

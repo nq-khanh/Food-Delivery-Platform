@@ -2,18 +2,19 @@ package com.hkt.fooddelivery.repository;
 
 import java.util.Optional;
 
+import com.hkt.fooddelivery.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.hkt.fooddelivery.entity.Role;
-import com.hkt.fooddelivery.entity.User;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@ActiveProfiles("test") // Sử dụng file application-test.yml nếu có
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
 class UserRepositoryTest {
 
     @Autowired
@@ -22,30 +23,25 @@ class UserRepositoryTest {
     @Test
     @DisplayName("Nên lưu User thành công và tìm lại được bằng Email")
     void shouldSaveAndFindUserByEmail() {
-        // 1. Arrange (Chuẩn bị dữ liệu)
-        User newUser = User.builder()
-                .email("tung.nguyen@example.com")
-                .passwordHash("hashed_password")
-                .role(Role.USER)
-                .firstName("Tùng")
-                .lastName("Nguyễn")
-                .phone("0987654321")
-                .isActive(true)
-                .isVerified(false)
-                .build();
+        User newUser = new User(
+                "nttung1901",
+                "2251010093tung@ou.edu.vn",
+                "0948451901",
+                "Tùng",
+                "Nguyễn",
+                "fjsldfsdfsdfsdfsdf"
+        );
 
-        // 2. Act (Thực hiện hành động)
         User savedUser = userRepository.save(newUser);
-        Optional<User> foundUser = userRepository.findByEmail("tung.nguyen@example.com");
+        Optional<User> foundUser = userRepository.findByEmail("2251010093tung@ou.edu.vn");
 
-        // 3. Assert (Kiểm tra kết quả)
         assertThat(savedUser).isNotNull();
-        assertThat(savedUser.getId()).isNotNull(); // Kiểm tra UUID đã được sinh ra chưa
+        assertThat(savedUser.getId()).isNotNull();
         
         assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getEmail()).isEqualTo("tung.nguyen@example.com");
+        assertThat(foundUser.get().getEmail()).isEqualTo("2251010093tung@ou.edu.vn");
         assertThat(foundUser.get().getFirstName()).isEqualTo("Tùng");
-        assertThat(foundUser.get().getCreatedAt()).isNotNull(); // Kiểm tra @PrePersist có hoạt động không
+        assertThat(foundUser.get().getCreatedAt()).isNotNull();
     }
 
     @Test

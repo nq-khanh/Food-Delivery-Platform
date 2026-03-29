@@ -3,7 +3,7 @@ spring:
     name: fooddelivery
 
   profiles:
-    active: dev
+    active: dev, local
 
   security:
     user:

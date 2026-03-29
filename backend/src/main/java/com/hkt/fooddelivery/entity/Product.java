@@ -1,7 +1,9 @@
 package com.hkt.fooddelivery.entity;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 import jakarta.persistence.*;
 
@@ -13,8 +15,8 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,91 +35,119 @@ public class Product {
     @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
+    @Column(name = "rating_avg", precision = 2, scale = 1)
+    private BigDecimal ratingAvg = BigDecimal.ZERO;
+
+    @Column(name = "review_count")
+    private int reviewCount;
+
     @Column(name = "is_available")
     private boolean isAvailable = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
-
-    public Product() {
-    }
-
-    // ── Getters & Setters ──────────────────────────────────────
 
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
     public Restaurant getRestaurant() { return restaurant; }
-    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
-
     public Category getCategory() { return category; }
-    public void setCategory(Category category) { this.category = category; }
-
     public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
     public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
-
     public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
     public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-
+    public BigDecimal getRatingAvg() { return ratingAvg; }
+    public int getReviewCount() { return reviewCount; }
     public boolean isAvailable() { return isAvailable; }
-    public void setAvailable(boolean available) { isAvailable = available; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-    // ── Builder ────────────────────────────────────────────────
+    protected Product() {}
 
-    public static ProductBuilder builder() {
-        return new ProductBuilder();
+    public Product(Restaurant restaurant, String name, BigDecimal price) {
+        this.restaurant = Objects.requireNonNull(restaurant);
+        this.name = normalizeName(name);
+        this.price = validatePrice(price);
+        this.isAvailable = true;
     }
 
-    public static final class ProductBuilder {
-        private Restaurant restaurant;
-        private Category category;
-        private String name;
-        private BigDecimal price;
-        private String description;
-        private String imageUrl;
-        private boolean isAvailable = true;
+    public Product(Restaurant restaurant, Category category, String name, BigDecimal price) {
+        this(restaurant, name, price);
+        assignCategory(category);
+    }
 
-        public ProductBuilder restaurant(Restaurant restaurant) { this.restaurant = restaurant; return this; }
-        public ProductBuilder category(Category category) { this.category = category; return this; }
-        public ProductBuilder name(String name) { this.name = name; return this; }
-        public ProductBuilder price(BigDecimal price) { this.price = price; return this; }
-        public ProductBuilder description(String description) { this.description = description; return this; }
-        public ProductBuilder imageUrl(String imageUrl) { this.imageUrl = imageUrl; return this; }
-        public ProductBuilder isAvailable(boolean isAvailable) { this.isAvailable = isAvailable; return this; }
+    public void rename(String name) {
+        this.name = normalizeName(name);
+    }
 
-        public Product build() {
-            Product product = new Product();
-            product.setRestaurant(restaurant);
-            product.setCategory(category);
-            product.setName(name);
-            product.setPrice(price);
-            product.setDescription(description);
-            product.setImageUrl(imageUrl);
-            product.setAvailable(isAvailable);
-            return product;
+    public void updatePrice(BigDecimal price) {
+        this.price = validatePrice(price);
+    }
+
+    public void assignCategory(Category category) {
+        if (category != null && !category.getRestaurant().getId().equals(this.restaurant.getId())) {
+            throw new IllegalArgumentException("Category must belong to same restaurant");
         }
+        this.category = category;
+    }
+
+    public void changeDescription(String description){
+        this.description = description;
+    }
+    public void changeImage(String imageUrl){
+        this.imageUrl = imageUrl;
+    }
+
+    public void activate() {
+        this.isAvailable = true;
+    }
+
+    public void deactivate() {
+        this.isAvailable = false;
+    }
+
+    public void updateRating(int newRating) {
+        BigDecimal totalScore = this.ratingAvg
+                .multiply(BigDecimal.valueOf(this.reviewCount))
+                .add(BigDecimal.valueOf(newRating));
+
+        this.reviewCount++;
+        this.ratingAvg = totalScore.divide(BigDecimal.valueOf(this.reviewCount), 1, RoundingMode.HALF_UP);
+    }
+
+    private String normalizeName(String name) {
+        Objects.requireNonNull(name);
+        String value = name.trim();
+        if (value.isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be blank");
+        }
+        return value;
+    }
+
+    private BigDecimal validatePrice(BigDecimal price) {
+        Objects.requireNonNull(price);
+        if (price.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Price must be >= 0");
+        }
+        return price.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Product product)) return false;
+        return id != null && id.equals(product.getId());
     }
 }
