@@ -25,6 +25,7 @@ replay_pid*
 
 # others
 project.pdf
+# *.gitkeep
 *.gitkeep
 
 

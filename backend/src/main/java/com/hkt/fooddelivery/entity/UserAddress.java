@@ -1,9 +1,11 @@
 package com.hkt.fooddelivery.entity;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import jakarta.persistence.*;
+import org.locationtech.jts.geom.Point;
+
+import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "user_addresses")
@@ -23,8 +25,8 @@ public class UserAddress {
     @Column(name = "full_address", nullable = false, columnDefinition = "TEXT")
     private String fullAddress;
 
-    @Column(name = "location", nullable = false, columnDefinition = "TEXT")
-    private String location;
+    @Column(name = "location", nullable = false, columnDefinition = "geography(Point, 4326)")
+    private Point location;
 
     @Column(name = "is_default")
     private boolean isDefault = false;
@@ -32,67 +34,62 @@ public class UserAddress {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
-    public UserAddress() {}
+    protected UserAddress() {}
+
+    UserAddress(User user, String fullAddress, Point location) {
+        this.user = Objects.requireNonNull(user);
+        this.fullAddress = requireNonBlank(fullAddress);
+        this.location = Objects.requireNonNull(location);
+        this.isDefault = false;
+    }
 
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
     public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
     public String getAddressName() { return addressName; }
-    public void setAddressName(String addressName) { this.addressName = addressName; }
-
     public String getFullAddress() { return fullAddress; }
-    public void setFullAddress(String fullAddress) { this.fullAddress = fullAddress; }
-
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
-
+    public Point getLocation() { return location; }
     public boolean isDefault() { return isDefault; }
-    public void setDefault(boolean aDefault) { isDefault = aDefault; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-
-    public static UserAddressBuilder builder() { return new UserAddressBuilder(); }
-
-    public static final class UserAddressBuilder {
-        private User user;
-        private String addressName;
-        private String fullAddress;
-        private String location;
-        private boolean isDefault;
-
-        public UserAddressBuilder user(User user) { this.user = user; return this; }
-        public UserAddressBuilder addressName(String addressName) { this.addressName = addressName; return this; }
-        public UserAddressBuilder fullAddress(String fullAddress) { this.fullAddress = fullAddress; return this; }
-        public UserAddressBuilder location(String location) { this.location = location; return this; }
-        public UserAddressBuilder isDefault(boolean isDefault) { this.isDefault = isDefault; return this; }
-
-        public UserAddress build() {
-            UserAddress a = new UserAddress();
-            a.setUser(user);
-            a.setAddressName(addressName);
-            a.setFullAddress(fullAddress);
-            a.setLocation(location);
-            a.setDefault(isDefault);
-            return a;
-        }
+    void rename(String addressName) {
+        this.addressName = addressName != null ? addressName.trim() : null;
     }
+
+    void changeAddress(String fullAddress, Point location) {
+        this.fullAddress = requireNonBlank(fullAddress);
+        this.location = Objects.requireNonNull(location);
+    }
+
+    void markAsDefault() {
+        this.isDefault = true;
+    }
+
+    void unmarkDefault() {
+        this.isDefault = false;
+    }
+
+    private String requireNonBlank(String value) {
+        Objects.requireNonNull(value);
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Address cannot be blank");
+        }
+        return trimmed;
+    }
+
 }

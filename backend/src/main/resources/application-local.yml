@@ -1,0 +1,15 @@
+spring:
+  # Cấu hình Mail cá nhân (Không push lên Git)
+  mail:
+    username: nttung2812@gmail.com
+    password: lpti pxso sonq mdns
+
+  # Nếu DB local của bạn khác (ví dụ: port khác hoặc pass khác)
+#  datasource:
+#    username: postgres
+#    password: your_local_password
+
+# Các biến môi trường khác nếu bạn muốn ghi đè để test nhanh
+#app:
+#  jwt:
+#    secret: your_local_development_secret_key_here

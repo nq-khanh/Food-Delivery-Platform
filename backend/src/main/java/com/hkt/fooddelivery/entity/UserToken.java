@@ -1,8 +1,10 @@
 package com.hkt.fooddelivery.entity;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
+import com.hkt.fooddelivery.entity.enums.TokenType;
 import jakarta.persistence.*;
 
 @Entity
@@ -20,8 +22,9 @@ public class UserToken {
     @Column(name = "token_hash", nullable = false, columnDefinition = "TEXT")
     private String tokenHash;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
-    private String type;
+    private TokenType type;
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
@@ -34,54 +37,51 @@ public class UserToken {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
+        this.createdAt = Instant.now();
     }
 
-    public UserToken() {}
-
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
     public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
     public String getTokenHash() { return tokenHash; }
-    public void setTokenHash(String tokenHash) { this.tokenHash = tokenHash; }
-
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-
+    public TokenType getType() { return type; }
     public Instant getExpiresAt() { return expiresAt; }
-    public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
-
     public boolean isRevoked() { return isRevoked; }
-    public void setRevoked(boolean revoked) { isRevoked = revoked; }
-
     public Instant getCreatedAt() { return createdAt; }
 
-    public static UserTokenBuilder builder() { return new UserTokenBuilder(); }
+    protected UserToken() {}
 
-    public static final class UserTokenBuilder {
-        private User user;
-        private String tokenHash;
-        private String type;
-        private Instant expiresAt;
-        private boolean isRevoked;
+    UserToken(User user, String tokenHash, TokenType type, Instant expiresAt) {
+        this.user = Objects.requireNonNull(user);
+        this.tokenHash = requireNonBlank(tokenHash);
+        this.type = Objects.requireNonNull(type);
+        this.expiresAt = Objects.requireNonNull(expiresAt);
 
-        public UserTokenBuilder user(User user) { this.user = user; return this; }
-        public UserTokenBuilder tokenHash(String tokenHash) { this.tokenHash = tokenHash; return this; }
-        public UserTokenBuilder type(String type) { this.type = type; return this; }
-        public UserTokenBuilder expiresAt(Instant expiresAt) { this.expiresAt = expiresAt; return this; }
-        public UserTokenBuilder isRevoked(boolean isRevoked) { this.isRevoked = isRevoked; return this; }
-
-        public UserToken build() {
-            UserToken t = new UserToken();
-            t.setUser(user);
-            t.setTokenHash(tokenHash);
-            t.setType(type);
-            t.setExpiresAt(expiresAt);
-            t.setRevoked(isRevoked);
-            return t;
+        if (expiresAt.isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Expiration must be in the future");
         }
+
+        this.isRevoked = false;
+    }
+
+    void revoke() {
+        if (this.isRevoked) return;
+        this.isRevoked = true;
+    }
+
+    boolean isExpired() {
+        return Instant.now().isAfter(expiresAt);
+    }
+
+    boolean isActive() {
+        return !isRevoked && !isExpired();
+    }
+
+    private String requireNonBlank(String value) {
+        Objects.requireNonNull(value);
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Value cannot be blank");
+        }
+        return trimmed;
     }
 }

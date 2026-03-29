@@ -1,6 +1,8 @@
 package com.hkt.fooddelivery.entity;
 
 import java.time.Instant;
+import java.util.Objects;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -11,74 +13,63 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
 
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(name = "display_order")
+    @Column(name = "display_order", nullable = false)
     private Integer displayOrder = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
-    public Category() {
-    }
+    protected Category() {}
 
-    // ── Getters & Setters ──────────────────────────────────────
+    public Category(Restaurant restaurant, String name) {
+        this.restaurant = Objects.requireNonNull(restaurant);
+        this.name = normalize(name);
+        this.displayOrder = 0;
+    }
 
     public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-
     public Restaurant getRestaurant() { return restaurant; }
-    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
-
     public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
     public Integer getDisplayOrder() { return displayOrder; }
-    public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
-
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
-    // ── Builder ────────────────────────────────────────────────
-
-    public static CategoryBuilder builder() {
-        return new CategoryBuilder();
+    public void rename(String name) {
+        this.name = normalize(name);
     }
 
-    public static final class CategoryBuilder {
-        private Restaurant restaurant;
-        private String name;
-        private Integer displayOrder = 0;
+    public void changeDisplayOrder(int order) {
+        if (order < 0) throw new IllegalArgumentException();
+        this.displayOrder = order;
+    }
 
-        public CategoryBuilder restaurant(Restaurant restaurant) { this.restaurant = restaurant; return this; }
-        public CategoryBuilder name(String name) { this.name = name; return this; }
-        public CategoryBuilder displayOrder(Integer displayOrder) { this.displayOrder = displayOrder; return this; }
-
-        public Category build() {
-            Category category = new Category();
-            category.setRestaurant(restaurant);
-            category.setName(name);
-            category.setDisplayOrder(displayOrder);
-            return category;
+    private String normalize(String name) {
+        Objects.requireNonNull(name);
+        String value = name.trim();
+        if (value.isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be blank");
         }
+        return value;
     }
 }
