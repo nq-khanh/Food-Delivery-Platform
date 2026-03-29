@@ -1,0 +1,92 @@
+.table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px 60px;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--bg-overlay);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px 60px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.row:hover { background: rgba(255,255,255,0.02); }
+.rowClosed { opacity: 0.5; }
+
+.dayName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.timeInput {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.timeInput::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+.timeInput:focus { border-color: var(--accent); }
+.timeInput:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+
+.toggleSlider {
+  display: block;
+  width: 38px;
+  height: 22px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  transition: all 0.25s;
+  position: relative;
+}
+.toggleSlider::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.25s;
+}
+.toggle input:checked + .toggleSlider {
+  background: var(--error-bg);
+  border-color: var(--error);
+}
+.toggle input:checked + .toggleSlider::after {
+  left: calc(100% - 17px);
+  background: var(--error);
+}

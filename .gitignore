@@ -31,3 +31,8 @@ project.pdf
 
 .idea/
 .vscode/
+
+node_modules/
+dist/
+.idea/
+frontend/**/node_modules
