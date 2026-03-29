@@ -5,15 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="98854f34-a7dc-4998-8205-953554d58e05" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/hkt/fooddelivery/entity/UserAddress.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/hkt/fooddelivery/entity/UserToken.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/hkt/fooddelivery/entity/Wallet.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/hkt/fooddelivery/repository/UserAddressRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/hkt/fooddelivery/repository/UserTokenRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/hkt/fooddelivery/repository/WalletRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/test/java/com/hkt/fooddelivery/repository/CustomerRepositoryTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/hkt/fooddelivery/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/hkt/fooddelivery/entity/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application-test.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application-test.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,6 +42,19 @@
     &quot;last_opened_file_path&quot;: &quot;D:/Food-Delivery-Platform&quot;
   }
 }</component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="Food-Delivery-Platform" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="Food-Delivery-Platform" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
