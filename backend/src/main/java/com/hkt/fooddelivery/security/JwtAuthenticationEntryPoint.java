@@ -2,6 +2,7 @@ package com.hkt.fooddelivery.security;
 import java.io.IOException;
 import java.time.Instant;
 
+import com.hkt.fooddelivery.dto.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -41,9 +42,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             "Unauthorized",
             "Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.",
             null,
-            request.getRequestURI(),
-            Instant.now());
+            request.getRequestURI());
 
-        objectMapper.writeValue(response.getOutputStream(), body);
+        objectMapper.writeValue(response.getOutputStream(), ApiResponse.error(body));
     }
 }

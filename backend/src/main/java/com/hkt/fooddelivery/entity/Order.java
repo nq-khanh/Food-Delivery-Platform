@@ -2,6 +2,7 @@ package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.enums.OrderPaymentStatus;
 import com.hkt.fooddelivery.entity.enums.OrderStatus;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 
@@ -155,7 +156,7 @@ public class Order {
         ensureModifiable();
 
         if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be greater than zero");
+            throw new BusinessException("Quantity must be greater than zero");
         }
 
         // 1. Tìm xem sản phẩm đã có trong giỏ hàng chưa
@@ -191,11 +192,11 @@ public class Order {
 
     public void confirm(User actor) {
         if (items.isEmpty()) {
-            throw new IllegalStateException("Order must have items");
+            throw new BusinessException("Order must have items");
         }
 
         if (orderStatus != OrderStatus.PENDING) {
-            throw new IllegalStateException("Invalid state");
+            throw new BusinessException("Invalid state");
         }
 
         this.orderStatus = OrderStatus.CONFIRMED;
@@ -210,14 +211,14 @@ public class Order {
 
     public void assignShipper(Shipper shipper) {
         if (orderStatus != OrderStatus.CONFIRMED) {
-            throw new IllegalStateException();
+            throw new BusinessException("Đơn hàng chưa được xác nhận");
         }
         this.shipper = shipper;
     }
 
     public void startShipping(User actor) {
         if (orderStatus != OrderStatus.CONFIRMED) {
-            throw new IllegalStateException();
+            throw new BusinessException("Đơn hàng chưa được xác nhận");
         }
 
         this.orderStatus = OrderStatus.SHIPPING;
@@ -227,7 +228,7 @@ public class Order {
 
     public void complete(User actor) {
         if (orderStatus != OrderStatus.SHIPPING) {
-            throw new IllegalStateException();
+            throw new BusinessException("Đơn hàng chưa được giao");
         }
 
         this.orderStatus = OrderStatus.COMPLETED;
@@ -238,11 +239,11 @@ public class Order {
 
     public void cancel(User actor, String reason) {
         if (orderStatus == OrderStatus.COMPLETED) {
-            throw new IllegalStateException("Cannot cancel completed order");
+            throw new BusinessException("Cannot cancel completed order");
         }
 
         if (reason == null || reason.isBlank()) {
-            throw new IllegalArgumentException("Cancel reason required");
+            throw new BusinessException("Cancel reason required");
         }
 
         this.orderStatus = OrderStatus.CANCELLED;
@@ -260,8 +261,8 @@ public class Order {
 
     public OrderReview review(int resRating, String resComment, Integer shipRating, List<ReviewItemCommand> commands) {
         // 1. Kiểm tra trạng thái chung của Order
-        if (this.orderStatus != OrderStatus.COMPLETED) throw new IllegalStateException("Only completed order can be reviewed");
-        if (this.review != null) throw new IllegalStateException("Already reviewed");
+        if (this.orderStatus != OrderStatus.COMPLETED) throw new BusinessException("Only completed order can be reviewed");
+        if (this.review != null) throw new BusinessException("Already reviewed");
 
         // 2. Tạo OrderReview
         OrderReview newReview = new OrderReview(this);
@@ -274,7 +275,7 @@ public class Order {
             for (ReviewItemCommand data : commands) {
                 // Check nghiệp vụ: Món này có thuộc đơn hàng không?
                 if (!this.containsProduct(data.product())) {
-                    throw new IllegalArgumentException("Sản phẩm không thuộc đơn hàng: " + data.product().getName());
+                    throw new BusinessException("Sản phẩm không thuộc đơn hàng: " + data.product().getName());
                 }
 
                 // Ủy quyền tạo ItemReview cho OrderReview
@@ -307,7 +308,7 @@ public class Order {
 
     private void ensureModifiable() {
         if (orderStatus != OrderStatus.PENDING) {
-            throw new IllegalStateException("Order cannot be modified");
+            throw new BusinessException("Order cannot be modified");
         }
     }
 

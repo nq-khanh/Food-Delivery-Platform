@@ -4,7 +4,9 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hkt.fooddelivery.entity.enums.TokenType;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 @Entity
@@ -17,6 +19,7 @@ public class UserToken {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Column(name = "token_hash", nullable = false, columnDefinition = "TEXT")
@@ -57,7 +60,7 @@ public class UserToken {
         this.expiresAt = Objects.requireNonNull(expiresAt);
 
         if (expiresAt.isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Expiration must be in the future");
+            throw new BusinessException("Expiration must be in the future");
         }
 
         this.isRevoked = false;
@@ -72,7 +75,7 @@ public class UserToken {
         return Instant.now().isAfter(expiresAt);
     }
 
-    boolean isActive() {
+    public boolean isActive() {
         return !isRevoked && !isExpired();
     }
 
@@ -80,7 +83,7 @@ public class UserToken {
         Objects.requireNonNull(value);
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Value cannot be blank");
+            throw new BusinessException("Value cannot be blank");
         }
         return trimmed;
     }

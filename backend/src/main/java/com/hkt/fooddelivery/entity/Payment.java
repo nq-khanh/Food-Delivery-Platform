@@ -1,6 +1,7 @@
 package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.enums.PaymentStatus;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -57,7 +58,7 @@ public class Payment {
 
     public void markSuccess(String transactionNo) {
         if (paymentStatus != PaymentStatus.PENDING) {
-            throw new IllegalStateException("Payment already processed");
+            throw new BusinessException("Payment already processed");
         }
 
         this.paymentStatus = PaymentStatus.SUCCESS;
@@ -66,7 +67,7 @@ public class Payment {
 
     public void markFailed() {
         if (paymentStatus != PaymentStatus.PENDING) {
-            throw new IllegalStateException("Payment already processed");
+            throw new BusinessException("Payment already processed");
         }
 
         this.paymentStatus = PaymentStatus.FAILED;
@@ -80,7 +81,7 @@ public class Payment {
     private BigDecimal validateAmount(BigDecimal amount) {
         Objects.requireNonNull(amount);
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be > 0");
+            throw new BusinessException("Amount must be > 0");
         }
         return amount;
     }

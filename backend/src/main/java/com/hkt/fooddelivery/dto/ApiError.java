@@ -11,8 +11,7 @@ public record ApiError(
     String error,
     String message,
     List<FieldErrorDetail> details,
-    String path,
-    Instant timestamp
+    String path
 ) {
     public record FieldErrorDetail(String field, String message) {}
 }

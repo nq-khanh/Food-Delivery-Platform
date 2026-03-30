@@ -130,6 +130,7 @@ CREATE TABLE shippers (
     license_plate VARCHAR(20) UNIQUE,
     is_online BOOLEAN DEFAULT false,
     is_busy BOOLEAN DEFAULT false,
+    approval_status VARCHAR(20) DEFAULT 'PENDING',
     location GEOGRAPHY(Point, 4326), -- Vị trí dưới dạng Point (Kinh độ, Vĩ độ)
     rating_avg NUMERIC(2,1) DEFAULT 0 CHECK (rating_avg BETWEEN 0 AND 5),
     review_count INT DEFAULT 0 CHECK (review_count >= 0),
@@ -311,12 +312,12 @@ CREATE TABLE order_item_reviews (
 -- =========================================================
 CREATE TABLE restaurant_embeddings (
     restaurant_id UUID PRIMARY KEY REFERENCES restaurants(id) ON DELETE CASCADE,
-    embedding vector(1536)
+    embedding vector(768)
 );
 
 CREATE TABLE product_embeddings (
     product_id UUID PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
-    embedding vector(1536)
+    embedding vector(768)
 );
 
 CREATE INDEX idx_product_embedding 

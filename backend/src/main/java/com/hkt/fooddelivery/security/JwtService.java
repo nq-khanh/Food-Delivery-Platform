@@ -5,6 +5,7 @@ import java.util.function.Function;
 
 import javax.crypto.SecretKey;
 
+import com.hkt.fooddelivery.entity.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,18 @@ public class JwtService {
 
     public String generateRefreshToken(UserDetails userDetails) {
         return buildToken(userDetails.getUsername(), jwtProperties.getRefreshTokenExpirationMs());
+    }
+
+    public String generateAccessToken(User user) {
+        return buildToken(user.getUsername(), jwtProperties.getAccessTokenExpirationMs());
+    }
+
+    public String generateRefreshToken(User user) {
+        return buildToken(user.getUsername(), jwtProperties.getRefreshTokenExpirationMs());
+    }
+
+    public Long getRefreshExpirationMs() {
+        return jwtProperties.getRefreshTokenExpirationMs();
     }
 
     private String buildToken(String subject, Long expirationMs){

@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -80,7 +81,7 @@ public class OrderItemReview {
 
     private int validateRating(int rating) {
         if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Rating must be between 1 and 5");
+            throw new BusinessException("Rating must be between 1 and 5");
         }
         return rating;
     }

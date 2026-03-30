@@ -81,12 +81,12 @@ class ProductTest {
     }
 
     @Test
-    @DisplayName("Nên tạo ProductEmbedding thành công với vector 1536 dims")
+    @DisplayName("Nên tạo ProductEmbedding thành công với vector 768 dims")
     void createEmbedding_ValidDimensions_Success() {
-        float[] validEmbedding = new float[1536];
+        float[] validEmbedding = new float[768];
         ProductEmbedding embedding = new ProductEmbedding(product, validEmbedding);
 
-        assertEquals(1536, embedding.getEmbedding().length);
+        assertEquals(768, embedding.getEmbedding().length);
     }
 
     @Test

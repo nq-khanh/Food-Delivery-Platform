@@ -1,6 +1,7 @@
 package com.hkt.fooddelivery.security;
 
 import com.hkt.fooddelivery.dto.ApiError;
+import com.hkt.fooddelivery.dto.ApiResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,11 +44,10 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                 "Forbidden",
                 "Bạn không có quyền truy cập tài nguyên này",
                 null,
-                request.getRequestURI(),
-                Instant.now()
+                request.getRequestURI()
         );
 
-        objectMapper.writeValue(response.getOutputStream(), body);
+        objectMapper.writeValue(response.getOutputStream(), ApiResponse.error(body));
     }
 
 }

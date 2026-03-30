@@ -1,6 +1,7 @@
 package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.enums.PayoutRequestStatus;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -77,13 +78,13 @@ public class PayoutRequest {
 
     public void markApproved(WalletTransaction tx) {
         if (this.status != PayoutRequestStatus.PENDING) {
-            throw new IllegalStateException("Only pending request can be approved");
+            throw new BusinessException("Only pending request can be approved");
         }
 
         Objects.requireNonNull(tx);
 
         if (!tx.getWallet().equals(this.wallet)) {
-            throw new IllegalArgumentException("Transaction does not belong to this wallet");
+            throw new BusinessException("Transaction does not belong to this wallet");
         }
 
         this.transaction = tx;
@@ -92,7 +93,7 @@ public class PayoutRequest {
 
     public void reject(String note) {
         if (this.status != PayoutRequestStatus.PENDING) {
-            throw new IllegalStateException("Only pending request can be rejected");
+            throw new BusinessException("Only pending request can be rejected");
         }
 
         this.status = PayoutRequestStatus.REJECTED;
@@ -102,7 +103,7 @@ public class PayoutRequest {
     private BigDecimal validateAmount(BigDecimal amount) {
         Objects.requireNonNull(amount);
         if (amount.signum() <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
+            throw new BusinessException("Amount must be positive");
         }
         return amount.setScale(2, RoundingMode.HALF_UP);
     }

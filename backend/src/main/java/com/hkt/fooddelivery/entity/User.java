@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.hkt.fooddelivery.entity.enums.Role;
 import com.hkt.fooddelivery.entity.enums.TokenType;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 
@@ -108,8 +109,10 @@ public class User {
     }
 
     public List<UserToken> getTokens() {
-        return List.copyOf(tokens);
+        return this.tokens;
     }
+
+    public void setPasswordHash(String passwordHash){ this.passwordHash = passwordHash; }
 
     public void changeEmail(String email) {
         this.email = normalizeEmail(email);
@@ -124,6 +127,10 @@ public class User {
         this.lastName = requireNonBlank(lastName);
     }
 
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     public void activate() {
         this.isActive = true;
     }
@@ -134,7 +141,7 @@ public class User {
 
     public void verify() {
         if (!isActive) {
-            throw new IllegalStateException("Cannot verify inactive user");
+            throw new BusinessException("Cannot verify inactive user");
         }
         if (isVerified) return;
         this.isVerified = true;
@@ -151,7 +158,7 @@ public class User {
 
     public void addAddress(String fullAddress, Point location, boolean isDefault) {
         if (this.addresses.size() >= 5) {
-            throw new IllegalStateException("Maximum 5 addresses allowed per user");
+            throw new BusinessException("Maximum 5 addresses allowed per user");
         }
 
         UserAddress newAddress = new UserAddress(this, fullAddress, location);
@@ -166,7 +173,7 @@ public class User {
         UserAddress target = this.addresses.stream()
                 .filter(a -> a.getId().equals(addressId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Address not found"));
+                .orElseThrow(() -> new BusinessException("Address not found"));
 
         makeDefault(target);
     }
@@ -192,7 +199,7 @@ public class User {
         Objects.requireNonNull(email);
         String value = email.trim().toLowerCase();
         if (!value.contains("@")) {
-            throw new IllegalArgumentException("Invalid email");
+            throw new BusinessException("Invalid email");
         }
         return value;
     }
@@ -201,7 +208,7 @@ public class User {
         Objects.requireNonNull(value);
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Value cannot be blank");
+            throw new BusinessException("Value cannot be blank");
         }
         return trimmed;
     }

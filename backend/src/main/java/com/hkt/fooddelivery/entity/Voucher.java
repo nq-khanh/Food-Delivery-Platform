@@ -2,6 +2,7 @@ package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.enums.DiscountType;
 import com.hkt.fooddelivery.entity.enums.TargetType;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -113,7 +114,7 @@ public class Voucher {
 
     public BigDecimal calculateDiscount(BigDecimal orderAmount) {
         if (!canUse(orderAmount)) {
-            throw new IllegalStateException("Voucher cannot be used");
+            throw new BusinessException("Voucher cannot be used");
         }
 
         BigDecimal discount;
@@ -136,7 +137,7 @@ public class Voucher {
 
     public void markUsed() {
         if (usedCount >= usageLimit) {
-            throw new IllegalStateException("Voucher usage exceeded");
+            throw new BusinessException("Voucher usage exceeded");
         }
         this.usedCount++;
     }
@@ -154,7 +155,7 @@ public class Voucher {
         Objects.requireNonNull(code);
         String value = code.trim().toUpperCase();
         if (value.isEmpty()) {
-            throw new IllegalArgumentException("Code cannot be blank");
+            throw new BusinessException("Code cannot be blank");
         }
         return value;
     }
@@ -162,7 +163,7 @@ public class Voucher {
     private BigDecimal validateDiscount(BigDecimal value) {
         Objects.requireNonNull(value);
         if (value.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Discount must be > 0");
+            throw new BusinessException("Discount must be > 0");
         }
         return value.setScale(2, RoundingMode.HALF_UP);
     }

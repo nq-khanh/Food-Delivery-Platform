@@ -1,6 +1,7 @@
 package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.listener.OrderReviewListener;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 
@@ -90,7 +91,7 @@ public class OrderReview {
 
     void reviewRestaurant(int rating, String comment) {
         if (this.restaurantRating != null) {
-            throw new IllegalStateException("Already reviewed");
+            throw new BusinessException("Already reviewed");
         }
 
         validateRating(rating);
@@ -101,13 +102,13 @@ public class OrderReview {
 
     void reviewShipper(int rating) {
         if (this.shipperRating != null) {
-            throw new IllegalStateException("Shipper already reviewed");
+            throw new BusinessException("Shipper already reviewed");
         }
 
         Shipper shipper = order.getShipper();
 
         if (shipper == null) {
-            throw new IllegalStateException("Order has no shipper");
+            throw new BusinessException("Order has no shipper");
         }
 
         validateRating(rating);
@@ -122,7 +123,7 @@ public class OrderReview {
                 .anyMatch(r -> r.getProduct().equals(product));
 
         if (exists) {
-            throw new IllegalStateException("Product already reviewed");
+            throw new BusinessException("Product already reviewed");
         }
 
         OrderItemReview itemReview = new OrderItemReview(this, product, rating);
@@ -133,7 +134,7 @@ public class OrderReview {
 
     void replyByRestaurant(String content) {
         if (content == null || content.isBlank()) {
-            throw new IllegalArgumentException("Reply content cannot be blank");
+            throw new BusinessException("Reply content cannot be blank");
         }
         this.restaurantReply = content;
         this.repliedAt = Instant.now();
@@ -149,7 +150,7 @@ public class OrderReview {
 
     private void validateRating(int rating) {
         if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Rating must be between 1 and 5");
+            throw new BusinessException("Rating must be between 1 and 5");
         }
     }
 }

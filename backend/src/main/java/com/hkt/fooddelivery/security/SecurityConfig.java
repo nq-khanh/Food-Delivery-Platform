@@ -41,9 +41,9 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/users/**").hasRole("MERCHANT")
-                        .requestMatchers("/api/shipper/**").hasRole("SHIPPER")
-                        .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/merchants/**").hasRole("MERCHANT")
+                        .requestMatchers("/api/shippers/**").hasRole("SHIPPER")
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN", "MERCHANT", "SHIPPER")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

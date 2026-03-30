@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 
@@ -87,7 +88,7 @@ public class UserAddress {
         Objects.requireNonNull(value);
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Address cannot be blank");
+            throw new BusinessException("Address cannot be blank");
         }
         return trimmed;
     }

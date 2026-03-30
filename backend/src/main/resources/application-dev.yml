@@ -32,6 +32,12 @@ spring:
             required: true
 
 app:
+  frontend:
+    urls:
+      user: https://food-user.hkt.com
+      merchant: https://food-merchant.hkt.com
+      shipper: https://food-shipper.hkt.com
+
   embedding:
     api-url: ${EMBEDDING_API_URL:http://localhost:8000}
   jwt:

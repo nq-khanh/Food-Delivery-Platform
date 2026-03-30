@@ -1,5 +1,7 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.entity.enums.ApprovalStatus;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 
@@ -33,6 +35,10 @@ public class Shipper {
     @Column(name = "is_busy")
     private boolean isBusy = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approval_status", length = 20)
+    private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
+
     @Column(name = "location", columnDefinition = "geography(Point, 4326)")
     private Point location;
 
@@ -59,7 +65,6 @@ public class Shipper {
 
     public Shipper(User user, String licensePlate) {
         this.user = Objects.requireNonNull(user);
-        this.id = user.getId();
         this.licensePlate = normalize(licensePlate);
         this.ratingAvg = BigDecimal.ZERO;
         this.isOnline = false;
@@ -73,6 +78,7 @@ public class Shipper {
     public String getLicensePlate() { return licensePlate; }
     public boolean isOnline() { return isOnline; }
     public boolean isBusy() { return isBusy; }
+    public ApprovalStatus getApprovalStatus() { return approvalStatus;}
     public Point getLocation() { return location; }
     public BigDecimal getRatingAvg() { return ratingAvg; }
     public int getReviewCount() { return reviewCount; }
@@ -87,20 +93,38 @@ public class Shipper {
         this.licensePlate = normalize(licensePlate);
     }
 
-    public void goOnline() {
-        this.isOnline = true;
-    }
 
     public void goOffline() {
         this.isOnline = false;
         this.isBusy = false;
     }
 
+    public void goOnline() {
+        if (this.approvalStatus != ApprovalStatus.APPROVED) {
+            throw new BusinessException("Shipper must be approved to go online");
+        }
+        this.isOnline = true;
+    }
+
     public void markBusy() {
-        if (!isOnline) {
-            throw new IllegalStateException("Shipper must be online");
+        if (!isOnline || approvalStatus != ApprovalStatus.APPROVED) {
+            throw new BusinessException("Shipper must be online and approved");
         }
         this.isBusy = true;
+    }
+
+    public void approve() {
+        if (this.approvalStatus != ApprovalStatus.PENDING) {
+            throw new BusinessException("Only pending can be approved");
+        }
+        this.approvalStatus = ApprovalStatus.APPROVED;
+    }
+
+    public void reject() {
+        if (this.approvalStatus != ApprovalStatus.PENDING) {
+            throw new BusinessException("Only pending can be rejected");
+        }
+        this.approvalStatus = ApprovalStatus.REJECTED;
     }
 
     public void markAvailable() {
@@ -124,7 +148,7 @@ public class Shipper {
         Objects.requireNonNull(value);
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Value cannot be blank");
+            throw new BusinessException("Value cannot be blank");
         }
         return trimmed;
     }

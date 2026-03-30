@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -119,7 +120,7 @@ public class ShippingConfig {
     private BigDecimal validateMoney(BigDecimal value) {
         Objects.requireNonNull(value);
         if (value.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Money must be >= 0");
+            throw new BusinessException("Money must be >= 0");
         }
         return value.setScale(2, RoundingMode.HALF_UP);
     }
@@ -127,7 +128,7 @@ public class ShippingConfig {
     private BigDecimal validatePositive(BigDecimal value) {
         Objects.requireNonNull(value);
         if (value.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Must be > 0");
+            throw new BusinessException("Must be > 0");
         }
         return value;
     }

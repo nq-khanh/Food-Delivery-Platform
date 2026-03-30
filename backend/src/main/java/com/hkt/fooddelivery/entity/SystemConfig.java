@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -60,7 +61,7 @@ public class SystemConfig {
         Objects.requireNonNull(key);
         String trimmed = key.trim();
         if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Key cannot be blank");
+            throw new BusinessException("Key cannot be blank");
         }
         return trimmed;
     }
@@ -69,7 +70,7 @@ public class SystemConfig {
         Objects.requireNonNull(value);
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Value cannot be blank");
+            throw new BusinessException("Value cannot be blank");
         }
         return trimmed;
     }
