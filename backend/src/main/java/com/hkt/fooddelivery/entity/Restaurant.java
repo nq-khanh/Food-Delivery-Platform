@@ -11,8 +11,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hkt.fooddelivery.entity.enums.ApprovalStatus;
 import com.hkt.fooddelivery.entity.enums.DayOfWeek;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 
@@ -26,6 +28,7 @@ public class Restaurant {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
+    @JsonIgnoreProperties({"tokens", "addresses", "passwordHash"})
     private User owner;
 
     @Column(nullable = false, length = 255)
@@ -96,6 +99,7 @@ public class Restaurant {
     public User getOwner() { return owner; }
     public String getName() { return name; }
     public String getAddress() { return address; }
+    public Point getLocation() { return  location; }
     public String getDescription() { return description; }
     public String getLogoUrl() { return logoUrl; }
     public ApprovalStatus getApprovalStatus() { return approvalStatus; }
@@ -122,7 +126,7 @@ public class Restaurant {
 
     public void approve() {
         if (this.approvalStatus != ApprovalStatus.PENDING) {
-            throw new IllegalStateException("Only pending can be approved");
+            throw new BusinessException("Only pending can be approved");
         }
         this.approvalStatus = ApprovalStatus.APPROVED;
         this.isActive = true;
@@ -130,7 +134,7 @@ public class Restaurant {
 
     public void reject() {
         if (this.approvalStatus != ApprovalStatus.PENDING) {
-            throw new IllegalStateException("Only pending can be rejected");
+            throw new BusinessException("Only pending can be rejected");
         }
         this.approvalStatus = ApprovalStatus.REJECTED;
         this.isActive = false;
@@ -138,14 +142,14 @@ public class Restaurant {
 
     public void deactivate() {
         if (this.approvalStatus != ApprovalStatus.APPROVED) {
-            throw new IllegalStateException("Only approved restaurant can be deactivated");
+            throw new BusinessException("Only approved restaurant can be deactivated");
         }
         this.isActive = false;
     }
 
     public void activate() {
         if (this.approvalStatus != ApprovalStatus.APPROVED) {
-            throw new IllegalStateException("Only approved restaurant can be activated");
+            throw new BusinessException("Only approved restaurant can be activated");
         }
         this.isActive = true;
     }

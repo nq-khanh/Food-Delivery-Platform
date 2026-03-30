@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.hkt.fooddelivery.entity.enums.WalletTransactionType;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 @Entity
@@ -81,7 +82,7 @@ public class Wallet {
         Objects.requireNonNull(order, "Order is required for credit");
 
         if (amount.signum() <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
+            throw new BusinessException("Amount must be positive");
         }
 
         this.balance = normalize(this.balance.add(amount));
@@ -103,11 +104,11 @@ public class Wallet {
         Objects.requireNonNull(request);
 
         if (amount.signum() <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
+            throw new BusinessException("Amount must be positive");
         }
 
         if (this.balance.compareTo(amount) < 0) {
-            throw new IllegalStateException("Insufficient balance");
+            throw new BusinessException("Insufficient balance");
         }
 
         this.balance = normalize(this.balance.subtract(amount));
@@ -131,15 +132,15 @@ public class Wallet {
         Objects.requireNonNull(type, "Transaction type is required");
 
         if (amount.signum() <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
+            throw new BusinessException("Amount must be positive");
         }
 
         if (this.balance.compareTo(amount) < 0) {
-            throw new IllegalStateException("Insufficient balance");
+            throw new BusinessException("Insufficient balance");
         }
 
         if (type == WalletTransactionType.ORDER_REVENUE) {
-            throw new IllegalArgumentException("Invalid transaction type for debit");
+            throw new BusinessException("Invalid transaction type for debit");
         }
 
         this.balance = normalize(this.balance.subtract(amount));
@@ -184,7 +185,7 @@ public class Wallet {
         Objects.requireNonNull(value);
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Value cannot be blank");
+            throw new BusinessException("Value cannot be blank");
         }
         return trimmed;
     }

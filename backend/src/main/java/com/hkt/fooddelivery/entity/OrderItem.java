@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -46,7 +47,7 @@ public class OrderItem {
 
     void addQuantity(int additionalQuantity) {
         if (additionalQuantity <= 0) {
-            throw new IllegalArgumentException("Quantity to add must be positive");
+            throw new BusinessException("Quantity to add must be positive");
         }
         this.quantity += additionalQuantity;
     }

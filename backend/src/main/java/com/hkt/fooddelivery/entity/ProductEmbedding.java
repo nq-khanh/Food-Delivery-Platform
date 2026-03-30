@@ -2,6 +2,8 @@ package com.hkt.fooddelivery.entity;
 
 import java.util.Objects;
 import java.util.UUID;
+
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Array;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -22,7 +24,7 @@ public class ProductEmbedding {
 
     @Column(name = "embedding", nullable = false)
     @JdbcTypeCode(SqlTypes.VECTOR)
-    @Array(length = 1536)
+    @Array(length = 768)
     private float[] embedding;
 
     protected ProductEmbedding() {
@@ -36,12 +38,12 @@ public class ProductEmbedding {
     public Product getProduct() { return product; }
     public float[] getEmbedding() { return embedding; }
 
-    private static final int DIMENSION = 1536;
+    private static final int DIMENSION = 768;
 
     void setEmbedding(float[] embedding) {
         Objects.requireNonNull(embedding);
         if (embedding.length != DIMENSION) {
-            throw new IllegalArgumentException("Invalid embedding dimension");
+            throw new BusinessException("Invalid embedding dimension");
         }
         this.embedding = embedding.clone();
     }

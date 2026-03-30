@@ -5,6 +5,8 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 @Entity
@@ -98,7 +100,7 @@ public class Product {
 
     public void assignCategory(Category category) {
         if (category != null && !category.getRestaurant().getId().equals(this.restaurant.getId())) {
-            throw new IllegalArgumentException("Category must belong to same restaurant");
+            throw new BusinessException("Category must belong to same restaurant");
         }
         this.category = category;
     }
@@ -131,7 +133,7 @@ public class Product {
         Objects.requireNonNull(name);
         String value = name.trim();
         if (value.isEmpty()) {
-            throw new IllegalArgumentException("Name cannot be blank");
+            throw new BusinessException("Name cannot be blank");
         }
         return value;
     }
@@ -139,7 +141,7 @@ public class Product {
     private BigDecimal validatePrice(BigDecimal price) {
         Objects.requireNonNull(price);
         if (price.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Price must be >= 0");
+            throw new BusinessException("Price must be >= 0");
         }
         return price.setScale(2, RoundingMode.HALF_UP);
     }

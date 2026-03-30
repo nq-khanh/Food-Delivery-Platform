@@ -1,6 +1,7 @@
 package com.hkt.fooddelivery.exception;
 
 import com.hkt.fooddelivery.dto.ApiError;
+import com.hkt.fooddelivery.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +26,19 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBusiness(BusinessException ex, HttpServletRequest request) {
+        ApiError body = new ApiError(
+                ex.getErrorCode(),
+                ex.getMessage(),
+                null,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ApiResponse.error(body));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         List<ApiError.FieldErrorDetail> details = ex.getBindingResult().getFieldErrors().stream()
                 .map(this::toFieldError)
                 .collect(Collectors.toList());
@@ -35,88 +47,81 @@ public class GlobalExceptionHandler {
                 "Bad Request",
                 "Validation failed",
                 details,
-                request.getRequestURI(),
-                Instant.now()
+                request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(body));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
 
         ApiError body = new ApiError(
                 "NotFound",
                 ex.getMessage(),
                 null,
-                request.getRequestURI(),
-                Instant.now()
+                request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(body));
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ApiError> handleConflict(DuplicateResourceException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleConflict(DuplicateResourceException ex, HttpServletRequest request) {
 
         ApiError body = new ApiError(
                 "Conflict",
                 ex.getMessage(),
                 null,
-                request.getRequestURI(),
-                Instant.now()
+                request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(body));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
 
         ApiError body = new ApiError(
                 "Unauthorized",
                 "Username/Email hoặc mật khẩu không đúng",
                 null,
-                request.getRequestURI(),
-                Instant.now()
+                request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(body));
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiError> handleAuthentication(AuthenticationException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleAuthentication(AuthenticationException ex, HttpServletRequest request) {
 
         ApiError body = new ApiError(
                 "Unauthorized",
                 ex.getMessage(),
                 null,
-                request.getRequestURI(),
-                Instant.now()
+                request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(body));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
 
         ApiError body = new ApiError(
                 "Forbidden",
                 "Bạn không có quyền truy cập tài nguyên này",
                 null,
-                request.getRequestURI(),
-                Instant.now()
+                request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(body));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleAccessDenied(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(Exception ex, HttpServletRequest request) {
         log.error("Unhandler error: ", ex);
         ApiError body = new ApiError(
                 "Internal Server Error",
                 "Đã xảy ra lỗi. Vui lòng thử lại sau.",
                 null,
-                request.getRequestURI(),
-                Instant.now()
+                request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(body));
     }
 
     private ApiError.FieldErrorDetail toFieldError (FieldError fe) {

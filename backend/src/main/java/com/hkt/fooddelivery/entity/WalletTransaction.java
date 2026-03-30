@@ -1,6 +1,7 @@
 package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.enums.WalletTransactionType;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -76,7 +77,7 @@ public class WalletTransaction {
     private BigDecimal validateAmount(BigDecimal amount) {
         Objects.requireNonNull(amount);
         if (amount.compareTo(BigDecimal.ZERO) == 0) {
-            throw new IllegalArgumentException("Amount must not be zero");
+            throw new BusinessException("Amount must not be zero");
         }
         return amount.setScale(2, RoundingMode.HALF_UP);
     }

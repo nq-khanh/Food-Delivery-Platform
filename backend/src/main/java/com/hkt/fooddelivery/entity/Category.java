@@ -3,6 +3,7 @@ package com.hkt.fooddelivery.entity;
 import java.time.Instant;
 import java.util.Objects;
 
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 @Entity
@@ -68,7 +69,7 @@ public class Category {
         Objects.requireNonNull(name);
         String value = name.trim();
         if (value.isEmpty()) {
-            throw new IllegalArgumentException("Name cannot be blank");
+            throw new BusinessException("Name cannot be blank");
         }
         return value;
     }

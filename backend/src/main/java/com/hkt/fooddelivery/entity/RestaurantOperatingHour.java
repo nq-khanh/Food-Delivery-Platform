@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import java.util.Objects;
 
 import com.hkt.fooddelivery.entity.enums.DayOfWeek;
+import com.hkt.fooddelivery.exception.BusinessException;
 import jakarta.persistence.*;
 
 @Entity
@@ -78,7 +79,7 @@ public class RestaurantOperatingHour {
         Objects.requireNonNull(closeTime);
 
         if (openTime.equals(closeTime)) {
-            throw new IllegalArgumentException("Open and close time cannot be equal");
+            throw new BusinessException("Open and close time cannot be equal");
         }
 
         this.openTime = openTime;

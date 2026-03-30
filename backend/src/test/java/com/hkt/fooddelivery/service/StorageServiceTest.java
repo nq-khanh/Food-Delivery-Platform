@@ -4,7 +4,6 @@ import com.hkt.fooddelivery.config.MinioProperties;
 import com.hkt.fooddelivery.exception.FileSizeExceededException;
 import com.hkt.fooddelivery.exception.InvalidFileTypeException;
 import com.hkt.fooddelivery.exception.StorageDeleteException;
-import com.hkt.fooddelivery.service.impl.StorageServiceImpl;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
@@ -33,7 +32,7 @@ class StorageServiceTest {
     private MinioProperties properties;
 
     @InjectMocks
-    private StorageServiceImpl storageService;
+    private StorageService storageService;
 
     @BeforeEach
     void setUp() {
