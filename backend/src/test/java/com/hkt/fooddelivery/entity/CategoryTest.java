@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class CategoryTest {
     @Test
     @DisplayName("Nên ném lỗi khi tên category trống hoặc null")
     void createCategory_InvalidName_ThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> new Category(mockRestaurant, ""));
+        assertThrows(BusinessException.class, () -> new Category(mockRestaurant, ""));
         assertThrows(NullPointerException.class, () -> new Category(mockRestaurant, null));
     }
 

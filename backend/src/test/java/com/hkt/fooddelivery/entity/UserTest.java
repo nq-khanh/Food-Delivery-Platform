@@ -1,6 +1,8 @@
 package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.enums.TokenType;
+import com.hkt.fooddelivery.exception.BusinessException;
+import com.hkt.fooddelivery.exception.TokenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,7 +55,7 @@ class UserTest {
             user.addAddress("Addr " + i, mockPoint, false);
         }
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(BusinessException.class, () ->
                 user.addAddress("Addr 6", mockPoint, false)
         );
     }
@@ -63,8 +65,8 @@ class UserTest {
     void getters_ShouldReturnImmutableLists() {
         user.addAddress("Addr 1", mockPoint, true);
 
-        assertThrows(UnsupportedOperationException.class, () -> user.getAddresses().clear());
-        assertThrows(UnsupportedOperationException.class, () -> user.getTokens().clear());
+        assertThrows(TokenException.class, () -> user.getAddresses().clear());
+        assertThrows(TokenException.class, () -> user.getTokens().clear());
     }
 
     @Test
@@ -91,6 +93,6 @@ class UserTest {
     @DisplayName("Không được verify user nếu tài khoản đang bị khóa (Inactive)")
     void verify_ShouldFail_WhenUserIsInactive() {
         user.deactivate();
-        assertThrows(IllegalStateException.class, () -> user.verify());
+        assertThrows(BusinessException.class, () -> user.verify());
     }
 }

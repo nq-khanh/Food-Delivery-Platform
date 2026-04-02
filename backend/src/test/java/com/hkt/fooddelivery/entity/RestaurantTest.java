@@ -2,6 +2,7 @@ package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.enums.ApprovalStatus;
 import com.hkt.fooddelivery.entity.enums.DayOfWeek;
+import com.hkt.fooddelivery.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -105,7 +106,7 @@ class RestaurantTest {
     @DisplayName("Nên chặn việc phê duyệt nếu trạng thái không phải PENDING")
     void approve_OnlyPending() {
         restaurant.approve();
-        assertThrows(IllegalStateException.class, () -> restaurant.approve());
+        assertThrows(BusinessException.class, () -> restaurant.approve());
 
         // Sau khi bị reject cũng không được approve lại (quy trình nghiệp vụ)
         // Lưu ý: Tùy nghiệp vụ bạn có thể cho phép approve lại sau khi sửa đổi

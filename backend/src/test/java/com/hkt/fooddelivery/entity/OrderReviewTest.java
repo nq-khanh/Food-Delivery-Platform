@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.exception.BusinessException;
 import org.junit.jupiter.api.*;
 import org.locationtech.jts.geom.Point;
 
@@ -89,7 +90,7 @@ class OrderReviewTest {
     @DisplayName("Nên ném lỗi nếu đơn hàng chưa hoàn thành")
     void review_Fail_NotCompleted() {
         // Đơn hàng mặc định là PENDING
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             order.review(5, "Good", 5, null);
         });
     }
@@ -106,7 +107,7 @@ class OrderReviewTest {
         // product2 không được add vào order
         ReviewItemCommand invalidCmd = new ReviewItemCommand(product2, 5, "Hơi tệ", null);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             order.review(5, "Ok", 5, List.of(invalidCmd));
         });
     }
@@ -120,7 +121,7 @@ class OrderReviewTest {
         order.startShipping(admin);
         order.complete(admin);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             order.review(6, "Quá tốt", 5, null); // Rating 6 là sai
         });
     }
@@ -138,7 +139,7 @@ class OrderReviewTest {
         order.review(5, "Lần 1", 5, null);
 
         // Review lần 2 phải lỗi
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             order.review(4, "Lần 2", 4, null);
         });
     }
@@ -172,6 +173,6 @@ class OrderReviewTest {
         order.complete(admin);        // Chuyển SHIPPING -> COMPLETED
         OrderReview review = order.review(5, "Tốt", 5, null);
 
-        assertThrows(IllegalArgumentException.class, () -> review.replyByRestaurant("  "));
+        assertThrows(BusinessException.class, () -> review.replyByRestaurant("  "));
     }
 }

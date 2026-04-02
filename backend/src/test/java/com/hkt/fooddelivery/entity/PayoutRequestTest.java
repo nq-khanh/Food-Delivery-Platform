@@ -1,6 +1,7 @@
 package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.enums.PayoutRequestStatus;
+import com.hkt.fooddelivery.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,7 @@ class PayoutRequestTest {
 
         // When & Then
         assertThatThrownBy(() -> request.markApproved(tx))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Transaction does not belong to this wallet");
     }
 
@@ -92,6 +93,6 @@ class PayoutRequestTest {
         when(tx.getWallet()).thenReturn(wallet);
 
         assertThatThrownBy(() -> request.markApproved(tx))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(BusinessException.class);
     }
 }
