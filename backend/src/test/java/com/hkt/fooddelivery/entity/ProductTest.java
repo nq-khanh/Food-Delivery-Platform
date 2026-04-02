@@ -1,5 +1,6 @@
 package com.hkt.fooddelivery.entity;
 
+import com.hkt.fooddelivery.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class ProductTest {
     @Test
     @DisplayName("Nên ném lỗi khi giá sản phẩm nhỏ hơn 0")
     void createProduct_InvalidPrice_ThrowsException() {
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(BusinessException.class, () ->
                 new Product(mockRestaurant, "Test", new BigDecimal("-1"))
         );
     }
@@ -59,7 +60,7 @@ class ProductTest {
         Category otherCategory = mock(Category.class);
         when(otherCategory.getRestaurant()).thenReturn(otherRestaurant);
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(BusinessException.class, () ->
                 product.assignCategory(otherCategory)
         );
     }
@@ -93,7 +94,7 @@ class ProductTest {
     @DisplayName("Nên ném lỗi nếu vector embedding sai kích thước")
     void createEmbedding_InvalidDimensions_ThrowsException() {
         float[] invalidEmbedding = new float[128];
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(BusinessException.class, () ->
                 new ProductEmbedding(product, invalidEmbedding)
         );
     }

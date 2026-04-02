@@ -2,6 +2,7 @@ package com.hkt.fooddelivery.entity;
 
 import com.hkt.fooddelivery.entity.enums.PayoutRequestStatus;
 import com.hkt.fooddelivery.entity.enums.WalletTransactionType;
+import com.hkt.fooddelivery.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -81,7 +82,7 @@ class WalletTest {
 
         // When & Then
         assertThatThrownBy(() -> wallet.debit(debitAmount, WalletTransactionType.WITHDRAWAL, "Withdraw"))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Insufficient balance");
     }
 
@@ -114,7 +115,7 @@ class WalletTest {
     @DisplayName("Nên ném lỗi nếu cập nhật thông tin ngân hàng trống")
     void shouldThrowExceptionWhenBankInfoIsBlank() {
         assertThatThrownBy(() -> wallet.updateBankInfo(" ", "123", "Owner"))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
