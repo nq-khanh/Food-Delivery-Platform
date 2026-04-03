@@ -2,7 +2,7 @@ package com.hkt.fooddelivery.controller;
 
 import com.hkt.fooddelivery.dto.ApiResponse;
 import com.hkt.fooddelivery.dto.RestaurantResponse;
-import com.hkt.fooddelivery.service.RestaurantAdminService;
+import com.hkt.fooddelivery.service.AdminRestaurantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,9 +13,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/admin/restaurants")
 @RequiredArgsConstructor
-public class RestaurantAdminController {
+public class AdminRestaurantController {
 
-    private final RestaurantAdminService service;
+    private final AdminRestaurantService service;
 
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<RestaurantResponse>>> getPending() {

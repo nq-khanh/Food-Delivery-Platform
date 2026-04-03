@@ -28,6 +28,8 @@ public class ShippingConfig {
     @Column(name = "fee_per_km", nullable = false, precision = 12, scale = 2)
     private BigDecimal feePerKm;
 
+    private int priority = 0;
+
     @Column(name = "is_active")
     private boolean isActive = true;
 
@@ -36,6 +38,9 @@ public class ShippingConfig {
 
     @Column(name = "active_to")
     private Instant activeTo;
+
+    @Column(name = "is_default")
+    private boolean isDefault;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -59,15 +64,26 @@ public class ShippingConfig {
     public ShippingConfig(String configName,
                           BigDecimal baseFee,
                           BigDecimal baseDistanceKm,
-                          BigDecimal feePerKm) {
+                          BigDecimal feePerKm,
+                          int priority) {
 
         this.configName = normalizeNullable(configName);
         this.baseFee = validateMoney(baseFee);
         this.baseDistanceKm = validatePositive(baseDistanceKm);
         this.feePerKm = validateMoney(feePerKm);
-
         this.isActive = true;
         this.activeFrom = Instant.now();
+        changePriority(priority);
+    }
+
+    public static ShippingConfig createDefault( BigDecimal baseFee, BigDecimal baseDistanceKm, BigDecimal feePerKm) {
+        ShippingConfig config = new ShippingConfig("Default", baseFee, baseDistanceKm, feePerKm, 0);
+        config.isDefault = true;
+        config.activeFrom = Instant.EPOCH;
+        config.activeTo = null;
+        config.isActive = true;
+
+        return config;
     }
 
 
@@ -77,11 +93,25 @@ public class ShippingConfig {
     public BigDecimal getBaseDistanceKm() { return baseDistanceKm; }
     public BigDecimal getFeePerKm() { return feePerKm; }
     public boolean isActive() { return isActive; }
+    public int getPriority() { return priority; }
     public Instant getActiveFrom() { return activeFrom; }
     public Instant getActiveTo() { return activeTo; }
+    public boolean isDefault() { return isDefault; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
+
+    public void changePriority(int newPriority) {
+        if (isDefault) {
+            throw new BusinessException("Cannot change priority of default config");
+        }
+
+        if (newPriority < 0) {
+            throw new BusinessException("Priority must be >= 0");
+        }
+
+        this.priority = newPriority;
+    }
 
     public void updatePricing(BigDecimal baseFee, BigDecimal baseDistanceKm, BigDecimal feePerKm) {
 
@@ -102,7 +132,12 @@ public class ShippingConfig {
     }
 
     public void deactivate() {
+        if (isDefault) {
+            throw new BusinessException("Cannot deactivate default config");
+        }
+
         if (!isActive) return;
+
         this.isActive = false;
         this.activeTo = Instant.now();
     }

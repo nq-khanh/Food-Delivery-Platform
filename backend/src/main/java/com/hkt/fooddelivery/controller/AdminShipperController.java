@@ -2,7 +2,7 @@ package com.hkt.fooddelivery.controller;
 
 import com.hkt.fooddelivery.dto.ApiResponse;
 import com.hkt.fooddelivery.dto.ShipperResponse;
-import com.hkt.fooddelivery.service.ShipperAdminService;
+import com.hkt.fooddelivery.service.AdminShipperService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,9 +13,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/admin/shippers")
 @RequiredArgsConstructor
-public class ShipperAdminController {
+public class AdminShipperController {
 
-    private final ShipperAdminService service;
+    private final AdminShipperService service;
 
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<ShipperResponse>>> getPending() {

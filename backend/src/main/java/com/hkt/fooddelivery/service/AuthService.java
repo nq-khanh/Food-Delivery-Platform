@@ -57,9 +57,13 @@ public class AuthService {
         if(userRepository.existsByEmail(email))
             throw new DuplicateResourceException("Email đã được đăng ký");
 
-        String token = tokenCacheService.createToken(email);
+        Role registrationRole = resolveRegistrationRole(origin);
+        String token = tokenCacheService.createRegistrationToken(email, registrationRole);
 
-        String baseUrl = frontendConfig.getUrls().getOrDefault(origin.toLowerCase(), frontendConfig.getUrls().get("user"));
+        String baseUrl = frontendConfig.getUrls().get(origin.toLowerCase());
+        if (baseUrl == null) {
+            throw new BusinessException("Origin đăng ký không hợp lệ");
+        }
         String verifyLink = baseUrl + "/register/details?token=" + token;
 
         Map<String, Object> props = new HashMap<>();
@@ -73,8 +77,11 @@ public class AuthService {
 
     @Transactional
     public AuthResponse completeRegistration(RegisterRequest req) {
-        String verifiedEmail = tokenCacheService.getEmailByToken(req.token());
-        if (verifiedEmail == null) throw new BusinessException("Link xác nhận đã hết hạn hoặc không hợp lệ");
+        TokenCacheService.RegistrationTokenPayload registrationPayload = tokenCacheService.getRegistrationPayloadByToken(req.token());
+        if (registrationPayload == null) throw new BusinessException("Link xác nhận đã hết hạn hoặc không hợp lệ");
+
+        String verifiedEmail = registrationPayload.email();
+        Role registrationRole = registrationPayload.role();
 
         if (userRepository.existsByUsername(req.username()))
             throw new DuplicateResourceException("Tên đăng nhập đã tồn tại");
@@ -88,12 +95,12 @@ public class AuthService {
         User user = new User(req.username(), verifiedEmail, req.phone(),
                 req.firstName(), req.lastName(),
                 passwordEncoder.encode(req.password()));
-        user.changeRole(req.role());
+        user.changeRole(registrationRole);
         user.verify();
 
         User savedUser = userRepository.save(user);
 
-        if (req.role() == Role.MERCHANT) {
+        if (registrationRole == Role.MERCHANT) {
             Wallet wallet = new Wallet(savedUser);
             walletRepository.save(wallet);
 
@@ -110,24 +117,21 @@ public class AuthService {
             res.setAIEmbedding(convertToFloatArray(vector));
             restaurantRepository.save(res);
         }
-        else if (req.role() == Role.SHIPPER) {
+        else if (registrationRole == Role.SHIPPER) {
             walletRepository.save(new Wallet(savedUser));
             shipperRepository.save(new Shipper(savedUser, req.licensePlate()));
-        }
-        else {
-            user = userRepository.save(user);
         }
 
         tokenCacheService.deleteToken(req.token());
 
-        return generateAuthTokens(user);
+        return generateAuthTokens(savedUser);
     }
 
     public void sendResetPasswordLink(String email, String origin) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Email không tồn tại"));
 
-        String token = tokenCacheService.createToken(email);
+        String token = tokenCacheService.createPasswordResetToken(email);
 
         String baseUrl = frontendConfig.getUrls().getOrDefault(origin.toLowerCase(), frontendConfig.getUrls().get("user"));
         String resetLink = baseUrl + "/reset-password?token=" + token;
@@ -143,7 +147,7 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(String token, String newPassword) {
-        String email = tokenCacheService.getEmailByToken(token);
+        String email = tokenCacheService.getPasswordResetEmailByToken(token);
         if (email == null) throw new BusinessException("Link khôi phục đã hết hạn hoặc không hợp lệ");
 
         User user = userRepository.findByEmail(email)
@@ -217,5 +221,18 @@ public class AuthService {
         float[] arr = new float[list.size()];
         for (int i = 0; i < list.size(); i++) arr[i] = list.get(i).floatValue();
         return arr;
+    }
+
+    private Role resolveRegistrationRole(String origin) {
+        if (origin == null) {
+            throw new BusinessException("Origin đăng ký không hợp lệ");
+        }
+
+        return switch (origin.toLowerCase()) {
+            case "user" -> Role.USER;
+            case "merchant" -> Role.MERCHANT;
+            case "shipper" -> Role.SHIPPER;
+            default -> throw new BusinessException("Origin đăng ký không hợp lệ");
+        };
     }
 }

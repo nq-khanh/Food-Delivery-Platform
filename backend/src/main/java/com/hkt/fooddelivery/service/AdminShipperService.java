@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class ShipperAdminService {
+public class AdminShipperService {
 
     private final ShipperRepository repository;
     private final ShipperMapper mapper;
