@@ -146,9 +146,11 @@ CREATE TABLE shipping_configs (
     base_fee NUMERIC(12,2) NOT NULL,
     base_distance_km NUMERIC(5,2) NOT NULL,
     fee_per_km NUMERIC(12,2) NOT NULL,
+    priority INT DEFAULT 0,
     is_active BOOLEAN DEFAULT true,
     active_from TIMESTAMPTZ DEFAULT NOW(),
     active_to TIMESTAMPTZ,               -- Có thể để trống nếu là giá vĩnh viễn
+    is_default BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
